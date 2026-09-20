@@ -4,6 +4,68 @@ Stand 20.09.2026. Ausschließlich synthetische Dokumente und Testdaten.
 Dieses Protokoll unterscheidet automatisierte Tests, tatsächliche Android-Prüfungen
 und noch offene Gerätetests. Ein erfolgreicher Build ersetzt keine Scannerprüfung.
 
+## UX-Abgleich am 20.09.2026 abends
+
+Referenz Fahrzeugakte `78abe02`. Sicherungs-Commit vor Änderungen `28ee63d`.
+Die vier Smartphone-Vergleichsbilder wurden lokal angesehen. Kein privates
+Screenshot wurde ins Repository übernommen.
+
+Automatisch bestanden sind Formatprüfung, ESLint, TypeScript strict und 45 Tests.
+Fünf zusätzliche Tests decken Übersichtssortierung mit echten SQLite-Daten,
+Entwurfsphasen, Anhänge außerhalb der Vorschauseite, Sortierung und die
+Integritätsprüfung vor interner PDF-Vorschau und Druck ab. Native JVM-Tests:
+37 bestanden, keine Fehler oder übersprungenen Tests. Zusätzlich bestanden
+Expo Doctor mit 20/20 Prüfungen, Android-Hermes-Export und Dev-APK-Build.
+
+Die Dev-APK wurde nach Paket-, Versions-, Debug-, Installer- und Zertifikatsprüfung
+mit `adb install -r -t -g --no-streaming` auf den Emulator Android 15/API 35 und
+das HONOR BVL-N49 mit Android 16 aktualisiert. Keine Deinstallation oder Löschung
+privater Daten. Fahrzeugakte wurde weder verändert noch neu installiert.
+Die laufende Hausakte-Metro-Sitzung verwendet weiterhin Port 8083.
+
+Der erweiterte isolierte Android-Datentest bestand auf beiden Geräten. Er verwendet
+echte Expo-SQLite-Dateien, native Fotooptimierung, PDF-Prüfung, neun gerenderte
+Vorschauseiten, Querformat, Cache-Verdrängung und erneutes Laden, native PBKDF2-
+Ableitung, AES-Backup, Wiederherstellung und erneute Datenbanköffnung. Originale
+und ältere Protokolle bleiben bytegleich. Ergebniszeiten UTC:
+Emulator `2026-09-20T20:11:47.642Z`, HONOR `2026-09-20T20:15:18.368Z`.
+
+Zusätzlich tatsächlich im Emulator bedient:
+
+- Akte anlegen, Eintrag ohne Foto mit Kosten und Dienstleister erfassen, separate
+  Eintragsdetailseite öffnen, bearbeiten und Galerieauswahl abbrechen.
+- Gespeichertes Protokoll intern anzeigen. Android-Druckdialog mit zwei sichtbaren
+  Seiten öffnen. Es wurde kein physischer Druckauftrag gesendet.
+- Passwortdialog, Android-Speicherortauswahl abbrechen, erneut speichern und den
+  erfolgreichen Export als echte `.habackup`-Datei im Download-Verzeichnis prüfen.
+- Zwei synthetische Fotos importieren. Reihenfolge per langer Berührung und Ziehen
+  ändern. SQLite-Entwurf vor und nach der Geste vergleichen. Menüaktion „Nach hinten“
+  prüfen. Großansicht öffnen und mit korrekter Seitenzählung zum zweiten Foto wischen.
+- Hell- und Dunkelmodus prüfen. Auf dem HONOR Startseite und Aktenformular mit den
+  Fahrzeugakte-Screenshots vergleichen und Eingaberahmen sowie Titelabstände angleichen.
+
+Bei den ersten Automationsläufen mussten Wartezeiten für die externe Galerie und
+Treffer auf gruppierte Android-Buttons korrigiert werden. Während Fast Refresh
+neu startende Testläufe wurden nicht als erfolgreich gewertet. Der Testhelfer ist
+an die neue Bildschirmfolge angepasst.
+
+Auf Nutzerwunsch wurden weitere umfangreiche Tests am Ende eingestellt. Der letzte
+zusammenhängende UI-Smoke-Lauf fand nach dem Anlegen den nächsten Erfassungsbutton
+nicht rechtzeitig. Dieser Automationslauf gilt ausdrücklich als nicht bestanden.
+Die oben einzeln bedienten Abläufe und beide isolierten Android-Datentests sind
+separat bestanden. Die abschließende manuelle Bedienabnahme übernimmt der Nutzer.
+
+Offen bleiben ein physischer Drucker, vollständige neue Kamera-/Scanner-Aufnahmen
+im Rahmen dieser UI-Änderung und ein Pixel-für-Pixel-Golden-Test beider Frameworks.
+Die vorhandenen Scanner- und Erinnerungsprüfungen der Erstimplementierung stehen
+unten. Die neue Oberfläche übernimmt Struktur, Theme und Bedienabläufe. Hausfelder
+und Android-Systemdialoge enthalten weiterhin die fachlich passenden Unterschiede.
+
+## Erstimplementierung am 20.09.2026 vormittags
+
+Die folgenden Ergebnisse dokumentieren den vorherigen Basisstand. Der damalige
+Drag-Listen-Patch wurde beim UX-Abgleich durch ein app-lokales Raster ersetzt.
+
 ## Automatisiert bestanden
 
 | Prüfung                                                             | Ergebnis                                                                                        |

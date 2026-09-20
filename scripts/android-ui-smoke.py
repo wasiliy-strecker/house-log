@@ -30,7 +30,9 @@ def find(label, field=False):
     for node in nodes():
         if field and node.get("class") != "android.widget.EditText":
             continue
-        if label.casefold() in ((node.get("text") or "").casefold(), (node.get("content-desc") or "").casefold()):
+        text = (node.get("text") or "").casefold()
+        description = (node.get("content-desc") or "").casefold()
+        if label.casefold() == text or label.casefold() == description or (not field and description.endswith(", " + label.casefold())):
             bounds = [int(x) for x in re.findall(r"\d+", node.get("bounds", ""))]
             if len(bounds) == 4 and bounds[3] > bounds[1]:
                 return bounds
@@ -68,25 +70,28 @@ if __name__ == "__main__":
     if find("Abbrechen"):
         tap("Abbrechen")
     command("shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", "hausakte:///", package)
-    tap("Neue Akte anlegen")
+    tap("Akte anlegen")
     name = "Android-Testhaus-" + str(int(time.time()))
     enter("Name *", name)
-    enter("Standort / Adresse", "Synthetischer Testort")
-    tap("Akte anlegen", scroll=True)
+    enter("Standort / Adresse (optional)", "Synthetischer Testort")
+    tap("Akte speichern", scroll=True)
     wait_for(name)
     tap("Eintrag erfassen")
-    tap("Wartung")
-    enter("Kosten in Euro", "123,45")
-    enter("Handwerker / Dienstleister", "Testbetrieb")
+    tap("Ohne Foto erfassen")
+    enter("Aktivität *", "Wartung")
+    enter("Kosten (optional)", "123,45")
+    enter("Handwerker / Dienstleister (optional)", "Testbetrieb")
     enter("Notiz", "Synthetischer UI-Test")
     tap("Eintrag speichern", scroll=True)
     wait_for("123,45 €")
-    tap("Bearbeiten / Anhänge", scroll=True)
-    tap("Galerie auswählen", scroll=True)
+    tap("Bearbeiten", scroll=True)
+    tap("Fotos aus Galerie hinzufügen", scroll=True)
+    wait_for("Photos")
     command("shell", "input", "keyevent", "4")
     tap("Eintrag speichern", scroll=True) if find("Eintrag speichern") else tap("Änderungen speichern", scroll=True)
     wait_for("123,45 €")
-    tap("Gesamtprotokoll erstellen", scroll=True)
-    tap("Kompakt ohne Anhänge")
-    wait_for("Protokoll gespeichert. Es bleibt bei späteren Änderungen unverändert.")
+    tap("Hausprotokoll als PDF erstellen", scroll=True)
+    tap("Kompakte PDF ohne Anhänge")
+    wait_for("Drucken")
+    wait_for("Teilen")
     print(f"BESTANDEN: Akte {name}, Kosten, Eintrag, Bearbeiten, Galerieabbruch, Protokoll.")

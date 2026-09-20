@@ -9,9 +9,23 @@ export type ReminderStatus = {
     planningState: string;
     isExact: boolean | null;
     deliveryFailed: boolean;
+    isNotificationActive: boolean;
+    lastTriggeredAtMillis: number | null;
   }[];
 };
+export type PdfSession = {
+  session: string;
+  pages: { width: number; height: number }[];
+};
 export interface HouseNative {
+  openPdfPreview(uri: string): Promise<PdfSession>;
+  renderPdfPage(session: string, index: number, width: number): Promise<string>;
+  closePdfPreview(session: string): Promise<void>;
+  printPdf(uri: string, name: string): Promise<void>;
+  saveBackupFile(
+    uri: string,
+    name: string,
+  ): Promise<{ status: 'saved' | 'cancelled'; name: string }>;
   deriveBackupKey(
     password: string,
     salt: string,

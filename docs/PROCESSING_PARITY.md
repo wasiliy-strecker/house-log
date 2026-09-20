@@ -115,7 +115,9 @@ nicht als reguläre Hausakte-Wiederholung angeboten.
 
 Keine Fahrzeug-Backupmigration und keine historischen Revisionslisten.
 Flache Aktenliste mit Textstandort statt einer verschachtelten Immobilienverwaltung.
-Die Oberfläche verwendet warmes Weiß, Petrol, Anthrazit und ein app-eigenes Haussymbol.
+Die Oberfläche folgt seit dem UX-Abgleich dem blauen Material-3-Thema der Fahrzeugakte.
+Hell und Dunkel folgen der Systemeinstellung. Das Haus-Symbol und die fachlichen
+Bezeichnungen bleiben app-spezifisch.
 Fotos stehen im vollständigen Protokoll jeweils vollständig auf einer Seite.
 Die gespeicherte Foto- und PDF-Reihenfolge bleibt in Formular, Galerie und Protokoll gleich.
 
@@ -134,12 +136,48 @@ ohne Scanner nutzbar. Eine eigene veröffentlichte Datenschutz-URL wird nicht er
 Browser und iOS werden nicht als Funktionsnachweis angeboten. Der Android-Dev-Build
 verwendet für Entwicklung Metro. Test- und Store-Veröffentlichung sind nicht beauftragt.
 
-## Geprüfte Fabric-Anpassung
+## UX-Abgleich mit der aktuellen Fahrzeugakte
 
-`react-native-draggable-flatlist` 4.0.3 benutzt für die Messung verschachtelter
-Listen einen numerischen Handle. React Native 0.86 Fabric verlangt dort eine
-native Host-Referenz. Der UI-Test hat diese Abweichung erkannt. Der eng begrenzte
-Postinstall-Schritt `scripts/patch-drag-list.cjs` ersetzt ausschließlich diese
-Messreferenz und erhält die normale React-Native-Fehleranzeige. Er prüft Version
-und erwarteten Quelltext und bricht bei abweichender Dependency ausdrücklich ab.
-Die Bibliothek bleibt gepinnt. Ziehen und Menüsortierung werden auf Android geprüft.
+Für die ausdrücklich beauftragte Übernahme von Aussehen und Bedienung wurde am
+20.09.2026 zusätzlich Fahrzeugakte `78abe02` geprüft. Die obige ältere Referenz
+beschreibt die ursprüngliche Datenverarbeitung, dieser Abschnitt den neuen UI-Stand.
+
+Gleiche Material-3-Farben, Roboto-Schriften, Material-Symbole, Eingaberahmen,
+Kartenradien, Touch-Flächen und unterer Speicherbereich. Keine eigene Startseiten-
+Logozeile. Die Aktenübersicht verwendet Suche, Anzahl, Sortiermenü, letzte Aktivität,
+Bearbeitungszeit und einen Erfassungsbutton unten rechts. Erinnerungen stehen in
+der Aktenbearbeitung. Haus-Stammdaten ersetzen die entsprechenden Fahrzeugdaten.
+
+Die Akte zeigt Stammdaten, Aktionen, gespeicherte Gesamtprotokolle und zehn aktuelle
+Einträge. Der vollständige Verlauf hat eine eigene Such- und Seitenansicht.
+Erfassen beginnt mit der Auswahl ohne Foto, Kamera, Galerie oder PDF. Nach dem
+Speichern öffnet sich die Eintragsdetailseite. Bearbeiten kehrt dorthin zurück.
+Zurück bei geänderten Eingaben fragt nach dem Verwerfen. Bestehende Entwürfe
+überspringen die Quellenwahl, sobald sie Eingaben oder Anhänge enthalten.
+
+Fotos stehen im Raster mit zwei Spalten beziehungsweise einzeln über die volle
+Breite. Großansicht, Wischen, Zoom, Seitenzählung und Pfeile gehören zum selben
+Ablauf. Sortieren nutzt einen app-lokalen Gesture-Handler mit langer Berührung,
+Auto-Scroll und alternativen Menüaktionen. Die frühere Drag-Listen-Bibliothek
+wird für das Raster nicht mehr verwendet.
+
+PDFs öffnen intern. Android [PdfRenderer](https://developer.android.com/reference/android/graphics/pdf/PdfRenderer)
+erzeugt ausschließlich Vorschauseiten in
+einem begrenzten Cache. Originale und gespeicherte Berichte werden dabei nicht
+verändert. Vor Öffnen und Drucken wird die gespeicherte Prüfsumme kontrolliert.
+Drucken übergibt die originale PDF an Androids Druckdialog. Teilen bleibt eine
+bewusste Aktion. PDF-Vorschau und Dateizugriff erlauben nur private App-Dateien.
+
+Backup-Passwörter werden in Dialogen eingegeben. Die verschlüsselte Datei wird
+mit Android [ACTION_CREATE_DOCUMENT](https://developer.android.com/training/data-storage/shared/documents-files)
+an einem selbst gewählten Ort gespeichert.
+Abbrechen ist kein erfolgreicher Export. Erneut speichern und Teilen sind explizite
+Aktionen. Verwaiste und doppelte Activity-Ergebnisse werden ignoriert. Fehler
+lassen die vorbereitete private Sicherung für den erneuten Versuch erhalten.
+Wiederherstellen folgt Datei, Passwort, Inhaltsprüfung, Bestätigung und Übernahme.
+
+Keine frei erfundene Datenschutz- oder Projekt-URL. Die Datenschutzerklärung
+bleibt lokal. Unverändert sind Schema, Backup-Kennung, Geldbeträge, Originalanhänge
+und die fachlich sinnvollen Hausfelder. Die PDF-Größenlimits der ursprünglichen
+Implementierung bleiben bestehen. Die neuere mehrteilige Fahrzeug-PDF-Ausgabe
+ist kein Bestandteil dieser UI-Anpassung.

@@ -9,3 +9,7 @@ Testhinweis. Absichtlich vorhandene synthetische EXIF-Daten prüfen deren Entfer
 `synthetic-document.pdf` hat zwei durchsuchbare Querformatseiten.
 `protected.pdf` ist eine mit `synthetic-password` geschützte Kopie für Ablehnungstests.
 Keine dieser Dateien enthält Kundendaten, private Adressen oder echte Dokumente.
+
+`ui/` enthält app-lokale Roboto-Schriften und MaterialIcons aus dem Flutter-SDK
+für die ausdrücklich gewünschte Übereinstimmung der Oberflächen. Die zugehörigen
+Lizenzen sind beigefügt. Es gibt keine Laufzeitabhängigkeit zur Flutter-App.

@@ -1,3 +1,5 @@
+import { useTheme } from './ui/theme';
+import { PdfViewerService } from './pdf/viewer-service';
 import { androidPasswordKey } from './backup/password-key';
 import {
   createContext,
@@ -25,6 +27,7 @@ export type Services = {
   backup: BackupService;
   media: MediaPort;
   native: HouseNative;
+  viewer: PdfViewerService;
 };
 const Context = createContext<
   (Services & { revision: number; refresh(): void }) | null
@@ -100,9 +103,11 @@ async function createServices(): Promise<Services> {
     backup: new BackupService(house, new BackupCodec(env, androidPasswordKey)),
     media,
     native: houseNative,
+    viewer: new PdfViewerService(house, houseNative),
   };
 }
 export function ServicesProvider({ children }: { children: ReactNode }) {
+  const colors = useTheme();
   const [services, setServices] = useState<Services>();
   const [error, setError] = useState('');
   const [revision, setRevision] = useState(0);
@@ -125,16 +130,20 @@ export function ServicesProvider({ children }: { children: ReactNode }) {
           flex: 1,
           padding: 32,
           justifyContent: 'center',
-          backgroundColor: '#FAF8F1',
+          backgroundColor: colors.background,
           gap: 16,
         }}
       >
-        <Text style={{ fontSize: 28, color: '#12666B', fontWeight: '700' }}>
+        <Text
+          style={{ fontSize: 28, color: colors.primary, fontWeight: '700' }}
+        >
           Hausakte
         </Text>
         {error ? (
           <>
-            <Text accessibilityRole="alert">{error}</Text>
+            <Text accessibilityRole="alert" style={{ color: colors.ink }}>
+              {error}
+            </Text>
             <Pressable
               onPress={() => {
                 setError('');
@@ -142,12 +151,12 @@ export function ServicesProvider({ children }: { children: ReactNode }) {
               }}
               style={{ minHeight: 48, padding: 14 }}
             >
-              <Text>Erneut versuchen</Text>
+              <Text style={{ color: colors.primary }}>Erneut versuchen</Text>
             </Pressable>
           </>
         ) : (
           <ActivityIndicator
-            color="#12666B"
+            color={colors.primary}
             accessibilityLabel="Lokale Daten werden geladen"
           />
         )}

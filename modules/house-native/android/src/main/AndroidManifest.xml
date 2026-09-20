@@ -1,5 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
   <application>
+    <activity android:name="com.appfactory.hausakte.nativecore.SaveDocumentActivity" android:exported="false" android:theme="@android:style/Theme.Material.Light.NoActionBar" />
     <activity android:name="com.appfactory.hausakte.nativecore.ScanActivity" android:exported="false" android:theme="@android:style/Theme.Material.Light.NoActionBar" />
     <receiver android:name="com.appfactory.hausakte.nativecore.HouseReminderReceiver" android:exported="false" />
     <receiver android:name="com.appfactory.hausakte.nativecore.ReminderRescheduleReceiver" android:exported="false">

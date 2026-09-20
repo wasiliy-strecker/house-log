@@ -77,6 +77,31 @@ export class SqlRepository implements Repository {
       ),
     );
   }
+  entry(id: string) {
+    return this.queue.run(
+      async () =>
+        (await this.bodies<HouseEntry>('entries', 'WHERE id=?', [id]))[0] ??
+        null,
+    );
+  }
+  dashboard() {
+    return this.queue.run(async () => {
+      const rows = await this.db.all<{
+        body: string;
+        latest: string | null;
+        lastEdited: string;
+      }>(`
+        SELECT r.body,
+          (SELECT e.body FROM entries e WHERE e.record_id=r.id ORDER BY e.occurred_at DESC,e.id DESC LIMIT 1) latest,
+          max(json_extract(r.body,'$.updatedAt'),coalesce((SELECT max(json_extract(e.body,'$.updatedAt')) FROM entries e WHERE e.record_id=r.id),json_extract(r.body,'$.updatedAt'))) lastEdited
+        FROM records r ORDER BY lastEdited DESC,r.id ASC`);
+      return rows.map((row) => ({
+        record: JSON.parse(row.body) as HouseRecord,
+        latest: row.latest ? (JSON.parse(row.latest) as HouseEntry) : null,
+        lastEdited: row.lastEdited,
+      }));
+    });
+  }
   entries(recordId: string, search = '', offset = 0, limit = PAGE_SIZE) {
     return this.queue.run(async () => {
       const pattern = `%${search.toLocaleLowerCase('de-DE').replace(/[\\%_]/g, '\\$&')}%`;
@@ -94,7 +119,11 @@ export class SqlRepository implements Repository {
             pattern,
           )
         )[0]?.n ?? 0;
-      return { rows, total };
+      const any = await this.db.all<{ found: number }>(
+        "SELECT EXISTS(SELECT 1 FROM entries WHERE record_id=? AND json_array_length(body,'$.attachments')>0) found",
+        recordId,
+      );
+      return { rows, total, hasAttachments: any[0]?.found === 1 };
     });
   }
   reports(recordId: string) {

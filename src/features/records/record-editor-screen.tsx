@@ -1,22 +1,24 @@
-import { Switch, View } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
+import { View } from 'react-native';
+import { Stack, useLocalSearchParams } from 'expo-router';
+import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import {
   Body,
   Button,
   Busy,
   Card,
-  Choices,
   DateField,
   Field,
-  Heading,
   Notice,
   Page,
-  Title,
-  styles,
+  SelectField,
+  MaterialSwitch,
+  useTheme,
 } from '../../core/ui/components';
+import { Icon } from '../../core/ui/icon';
 import { categories, type Reminder } from '../../core/domain/models';
 import { useRecordEditor } from './use-record-editor';
-
+import { useReminderStatus } from './use-records';
 const intervals: Record<Reminder['interval'], string> = {
   hourly: 'Stündlich',
   daily: 'Täglich',
@@ -24,169 +26,307 @@ const intervals: Record<Reminder['interval'], string> = {
   monthly: 'Monatlich',
   yearly: 'Jährlich',
 };
+const weekdays = [
+  'Montag',
+  'Dienstag',
+  'Mittwoch',
+  'Donnerstag',
+  'Freitag',
+  'Samstag',
+  'Sonntag',
+];
 export function RecordEditorScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
-  const vm = useRecordEditor(id);
-  const record = vm.record;
-  if (!record)
+  const vm = useRecordEditor(id),
+    c = useTheme(),
+    status = useReminderStatus();
+  const [custom, setCustom] = useState(false);
+  const r = vm.record;
+  if (!r)
     return (
       <Page>
         <Notice error text={vm.error} />
-        <Busy />
+        {!vm.error && <Busy />}
       </Page>
     );
-  const reminder = record.reminder;
+  const reminder = r.reminder;
+  const time = reminder
+    ? `${String(reminder.hour).padStart(2, '0')}:${String(reminder.minute).padStart(2, '0')} Uhr`
+    : '';
+  function pickTime() {
+    const date = new Date();
+    date.setHours(reminder!.hour, reminder!.minute);
+    DateTimePickerAndroid.open({
+      value: date,
+      mode: 'time',
+      is24Hour: true,
+      onChange: (e, value) => {
+        if (e.type === 'set' && value)
+          vm.reminder({ hour: value.getHours(), minute: value.getMinutes() });
+      },
+    });
+  }
   return (
-    <Page>
-      <Title subtitle="Ein Haus, eine Wohnung oder eine einzelne Anlage.">
-        {id ? 'Akte bearbeiten' : 'Neue Akte'}
-      </Title>
-      <Notice error text={vm.error} />
-      <Field
-        label="Name *"
-        value={record.name}
-        onChangeText={(v) => vm.change('name', v)}
-        placeholder="Zum Beispiel Haus Musterstraße"
-      />
-      <Field
-        label="Kategorie"
-        value={record.category}
-        onChangeText={(v) => vm.change('category', v)}
-      />
-      <Choices
-        values={categories}
-        selected={record.category}
-        onSelect={(v) => vm.change('category', v)}
-      />
-      <Field
-        label="Standort / Adresse"
-        value={record.location}
-        onChangeText={(v) => vm.change('location', v)}
-      />
-      <Field
-        label="Hersteller"
-        value={record.manufacturer}
-        onChangeText={(v) => vm.change('manufacturer', v)}
-      />
-      <Field
-        label="Modell"
-        value={record.model}
-        onChangeText={(v) => vm.change('model', v)}
-      />
-      <Field
-        label="Seriennummer"
-        value={record.serial}
-        onChangeText={(v) => vm.change('serial', v)}
-      />
-      <DateField
-        label="Einbau- oder Anschaffungsdatum"
-        value={record.installedOn}
-        optional
-        onChange={(v) => vm.change('installedOn', v)}
-      />
-      <Field
-        label="Notiz"
-        multiline
-        value={record.note}
-        onChangeText={(v) => vm.change('note', v)}
-      />
-      <Card>
-        <View style={styles.row}>
-          <Heading>Lokale Erinnerung</Heading>
-          <Switch
-            accessibilityLabel="Erinnerung aktivieren"
-            value={!!reminder}
-            onValueChange={vm.toggleReminder}
-          />
-        </View>
-        <Body>Optional an Wartung oder einen neuen Eintrag erinnern.</Body>
-        {reminder && (
-          <>
-            <Choices
-              values={Object.values(intervals)}
-              selected={intervals[reminder.interval]}
-              onSelect={(label) =>
-                vm.reminder({
-                  interval: Object.entries(intervals).find(
-                    ([, v]) => v === label,
-                  )![0] as Reminder['interval'],
-                })
-              }
-            />
-            {reminder.interval === 'hourly' ? (
-              <DateField
-                time
-                label="Erster Termin"
-                value={new Date(reminder.startsAtMillis).toISOString()}
-                onChange={(v) =>
-                  vm.reminder({ startsAtMillis: new Date(v).getTime() })
-                }
-              />
-            ) : (
-              <>
-                <Field
-                  label="Stunde (0–23)"
-                  keyboardType="number-pad"
-                  value={String(reminder.hour)}
-                  onChangeText={(v) => vm.reminder({ hour: Number(v) })}
-                />
-                <Field
-                  label="Minute (0–59)"
-                  keyboardType="number-pad"
-                  value={String(reminder.minute)}
-                  onChangeText={(v) => vm.reminder({ minute: Number(v) })}
-                />
-              </>
-            )}
-            {['weekly', 'monthly', 'yearly'].includes(reminder.interval) && (
-              <Field
-                label={
-                  reminder.interval === 'weekly'
-                    ? 'Wochentag (1 = Montag, 7 = Sonntag)'
-                    : 'Tag im Monat (1–31)'
-                }
-                keyboardType="number-pad"
-                value={String(reminder.day)}
-                onChangeText={(v) => vm.reminder({ day: Number(v) })}
-              />
-            )}
-            {reminder.interval === 'yearly' && (
-              <Field
-                label="Monat (1–12)"
-                keyboardType="number-pad"
-                value={String(reminder.month)}
-                onChangeText={(v) => vm.reminder({ month: Number(v) })}
-              />
-            )}
-            <Choices
-              values={['Normal', 'Pünktlich mit Alarmton']}
-              selected={
-                reminder.deliveryMode === 'normal'
-                  ? 'Normal'
-                  : 'Pünktlich mit Alarmton'
-              }
-              onSelect={(v) =>
-                vm.reminder({
-                  deliveryMode: v === 'Normal' ? 'normal' : 'punctualWithSound',
-                })
-              }
-            />
-            <Body>
-              Am Monatsende wird bei Bedarf der letzte gültige Tag verwendet.
-              Android-Berechtigungen und Energiesparregeln können die Zustellung
-              beeinflussen.
+    <Page
+      bottom={
+        <>
+          {!id && (
+            <Body muted style={{ fontSize: 12 }}>
+              Speichere zuerst die Akte. Anschließend kannst du den ersten
+              Eintrag mit oder ohne Fotos und Dokumente erfassen.
             </Body>
-          </>
-        )}
-      </Card>
-      {vm.busy && <Busy />}
-      <Button
-        title={id ? 'Änderungen speichern' : 'Akte anlegen'}
-        disabled={vm.busy}
-        onPress={() => {
-          void vm.save();
-        }}
+          )}
+          <Button
+            icon={id && !vm.dirty ? 'check_circle_outline' : 'save_outlined'}
+            title={
+              vm.busy
+                ? 'Wird gespeichert …'
+                : id && !vm.dirty
+                  ? 'Alles gespeichert'
+                  : id
+                    ? 'Änderungen speichern'
+                    : 'Akte speichern'
+            }
+            disabled={vm.busy || !vm.dirty}
+            onPress={() => void vm.save()}
+          />
+        </>
+      }
+    >
+      <Stack.Screen
+        options={{ title: id ? 'Akte bearbeiten' : 'Akte anlegen' }}
       />
+      <View style={{ gap: 16 }}>
+        <Notice error text={vm.error} />
+        <SelectField
+          label="Kategorie"
+          value={custom ? '__custom' : r.category}
+          options={[...new Set([...categories, r.category].filter(Boolean))]
+            .map((value) => ({ value, label: value }))
+            .concat({ value: '__custom', label: 'Eigene Kategorie' })}
+          disabled={vm.busy}
+          onChange={(v) => {
+            setCustom(v === '__custom');
+            if (v !== '__custom') vm.change('category', v);
+          }}
+        />
+        {custom && (
+          <Field
+            label="Eigene Kategorie"
+            value={r.category}
+            onChangeText={(v) => vm.change('category', v)}
+            editable={!vm.busy}
+          />
+        )}
+        <Field
+          label="Name *"
+          value={r.name}
+          onChangeText={(v) => vm.change('name', v)}
+          editable={!vm.busy}
+        />
+        <Field
+          label="Standort / Adresse (optional)"
+          value={r.location}
+          onChangeText={(v) => vm.change('location', v)}
+          editable={!vm.busy}
+        />
+        <Field
+          label="Hersteller (optional)"
+          value={r.manufacturer}
+          onChangeText={(v) => vm.change('manufacturer', v)}
+          editable={!vm.busy}
+        />
+        <Field
+          label="Modell (optional)"
+          value={r.model}
+          onChangeText={(v) => vm.change('model', v)}
+          editable={!vm.busy}
+        />
+        <Field
+          label="Seriennummer (optional)"
+          value={r.serial}
+          onChangeText={(v) => vm.change('serial', v)}
+          editable={!vm.busy}
+        />
+        <DateField
+          label="Einbau / Anschaffung (optional)"
+          value={r.installedOn}
+          onChange={(v) => vm.change('installedOn', v)}
+          optional
+          disabled={vm.busy}
+        />
+        <Card>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <View style={{ flex: 1, gap: 4 }}>
+              <Body style={{ fontSize: 16 }}>Aktenerinnerung</Body>
+              <Body muted>Optional und nur lokal auf diesem Gerät</Body>
+            </View>
+            <MaterialSwitch
+              label="Erinnerung aktivieren"
+              value={!!reminder}
+              disabled={vm.busy}
+              onValueChange={vm.toggleReminder}
+            />
+          </View>
+          {reminder && (
+            <View style={{ gap: 16 }}>
+              <SelectField
+                label="Intervall"
+                value={reminder.interval}
+                options={Object.entries(intervals).map(([value, label]) => ({
+                  value,
+                  label,
+                }))}
+                disabled={vm.busy}
+                onChange={(value) =>
+                  vm.reminder({
+                    interval: value as Reminder['interval'],
+                    day:
+                      value === 'weekly'
+                        ? Math.min(reminder.day, 7)
+                        : reminder.day,
+                  })
+                }
+              />
+              {reminder.interval === 'yearly' && (
+                <SelectField
+                  label="Monat"
+                  value={String(reminder.month)}
+                  options={Array.from({ length: 12 }, (_, i) => ({
+                    value: String(i + 1),
+                    label: new Date(2026, i, 1).toLocaleString('de-DE', {
+                      month: 'long',
+                    }),
+                  }))}
+                  onChange={(v) => vm.reminder({ month: Number(v) })}
+                />
+              )}
+              {reminder.interval === 'weekly' && (
+                <SelectField
+                  label="Wochentag"
+                  value={String(reminder.day)}
+                  options={weekdays.map((label, i) => ({
+                    label,
+                    value: String(i + 1),
+                  }))}
+                  onChange={(v) => vm.reminder({ day: Number(v) })}
+                />
+              )}
+              {(reminder.interval === 'monthly' ||
+                reminder.interval === 'yearly') && (
+                <SelectField
+                  label="Tag"
+                  value={String(reminder.day)}
+                  options={Array.from({ length: 31 }, (_, i) => String(i + 1))}
+                  onChange={(v) => vm.reminder({ day: Number(v) })}
+                />
+              )}
+              {reminder.interval === 'hourly' ? (
+                <DateField
+                  label="Erster Termin"
+                  time
+                  value={new Date(reminder.startsAtMillis).toISOString()}
+                  onChange={(v) =>
+                    vm.reminder({ startsAtMillis: new Date(v).getTime() })
+                  }
+                />
+              ) : (
+                <View style={{ gap: 8 }}>
+                  <Body>Uhrzeit: {time}</Body>
+                  <Button
+                    secondary
+                    icon="schedule"
+                    title="Uhrzeit ändern"
+                    onPress={pickTime}
+                  />
+                </View>
+              )}
+              {(['normal', 'punctualWithSound'] as const).map((mode) => (
+                <Card
+                  key={mode}
+                  onPress={() => vm.reminder({ deliveryMode: mode })}
+                  style={{
+                    borderColor:
+                      reminder.deliveryMode === mode ? c.primary : c.border,
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      gap: 10,
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Icon
+                      name={
+                        reminder.deliveryMode === mode
+                          ? 'check_circle_outline'
+                          : 'notifications_active_outlined'
+                      }
+                      color={c.primary}
+                    />
+                    <View style={{ flex: 1, gap: 4 }}>
+                      <Body strong>
+                        {mode === 'normal'
+                          ? 'Normale Erinnerung'
+                          : 'Pünktlich mit Ton'}
+                      </Body>
+                      <Body muted>
+                        {mode === 'normal'
+                          ? 'Android kann die Erinnerung etwas später anzeigen.'
+                          : 'Benötigt die Freigabe für genaue Alarme. Android-Einstellungen können den Ton beeinflussen.'}
+                      </Body>
+                    </View>
+                  </View>
+                </Card>
+              ))}
+              {status && !status.notifications && (
+                <>
+                  <Notice
+                    error
+                    text="Benachrichtigungen sind in Android blockiert."
+                  />
+                  <Button
+                    secondary
+                    title="Benachrichtigungen erlauben"
+                    onPress={() => void vm.openReminderSettings(false)}
+                  />
+                </>
+              )}
+              {reminder.deliveryMode === 'punctualWithSound' &&
+                status &&
+                !status.exact && (
+                  <>
+                    <Notice text="Ohne Freigabe für genaue Alarme erinnert Android möglicherweise später." />
+                    <Button
+                      secondary
+                      title="Alarme & Erinnerungen erlauben"
+                      onPress={() => void vm.openReminderSettings(true)}
+                    />
+                  </>
+                )}
+              <Button
+                secondary
+                icon="notifications_active_outlined"
+                title="Erinnerung testen"
+                disabled={vm.busy}
+                onPress={() =>
+                  void vm.testReminder(
+                    reminder.deliveryMode === 'punctualWithSound',
+                  )
+                }
+              />
+            </View>
+          )}
+        </Card>
+        <Field
+          label="Notiz (optional)"
+          multiline
+          value={r.note}
+          onChangeText={(v) => vm.change('note', v)}
+          editable={!vm.busy}
+        />
+      </View>
     </Page>
   );
 }

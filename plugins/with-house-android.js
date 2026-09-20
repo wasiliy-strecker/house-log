@@ -58,6 +58,15 @@ androidComponents {
     const app = mod.modResults.manifest.application[0];
     app.$['android:allowBackup'] = 'false';
     app.$['android:fullBackupContent'] = 'false';
+    app['meta-data'] = (app['meta-data'] ?? []).filter(
+      (item) => item.$['android:name'] !== 'EXDevMenuShowFloatingActionButton',
+    );
+    app['meta-data'].push({
+      $: {
+        'android:name': 'EXDevMenuShowFloatingActionButton',
+        'android:value': 'false',
+      },
+    });
     return mod;
   });
 };

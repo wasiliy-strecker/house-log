@@ -10,6 +10,7 @@ import { MAX_FILE_BYTES } from '../pdf/pdf-service';
 import { verifiedFile } from '../files/integrity';
 import { MAX_BACKUP_BYTES } from '../backup/backup-service';
 
+export type PreparedBackup = { uri: string; name: string };
 export type PickResult = { attachments: Attachment[]; failures: string[] };
 export interface MediaPort {
   pick(
@@ -19,7 +20,10 @@ export interface MediaPort {
   recoverPhotos(): Promise<PickResult>;
   open(item: { file: string; sha256: string }): Promise<void>;
   share(item: { file: string; sha256: string }): Promise<void>;
-  exportBackup(bytes: Uint8Array): Promise<void>;
+  prepareBackup(bytes: Uint8Array): Promise<PreparedBackup>;
+  saveBackup(file: PreparedBackup): Promise<'saved' | 'cancelled'>;
+  shareBackup(file: PreparedBackup): Promise<void>;
+  discardBackup(file: PreparedBackup): Promise<void>;
   pickBackup(): Promise<Uint8Array | null>;
 }
 export class ExpoMedia implements MediaPort {
@@ -160,18 +164,41 @@ export class ExpoMedia implements MediaPort {
       mimeType: item.file.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg',
     });
   }
-  async exportBackup(bytes: Uint8Array) {
+  async prepareBackup(bytes: Uint8Array): Promise<PreparedBackup> {
     const directory = new Directory(Paths.cache, 'exports');
     directory.create({ intermediates: true, idempotent: true });
-    const file = new File(
-      directory,
-      `Hausakte-${new Date().toISOString().replace(/[:.]/g, '-')}.habackup`,
-    );
-    file.write(bytes);
-    await Sharing.shareAsync(file.uri, {
+    const name = `Hausakte-${new Date().toISOString().replace(/[:.]/g, '-')}.habackup`;
+    const file = new File(directory, name);
+    try {
+      file.write(bytes);
+      return { uri: file.uri, name };
+    } catch (error) {
+      if (file.exists) file.delete();
+      throw error;
+    }
+  }
+  async saveBackup(file: PreparedBackup) {
+    return (await houseNative.saveBackupFile(file.uri, file.name)).status;
+  }
+  async shareBackup(file: PreparedBackup) {
+    const directory = new Directory(Paths.cache, 'shared-backups');
+    directory.create({ idempotent: true, intermediates: true });
+    const copy = new File(directory, file.name);
+    new File(file.uri).copy(copy);
+    await Sharing.shareAsync(copy.uri, {
       mimeType: 'application/octet-stream',
-      dialogTitle: 'Hausakte-Backup speichern',
+      dialogTitle: 'Hausakte-Backup teilen',
     });
+  }
+  async discardBackup(file: PreparedBackup) {
+    const directory = new Directory(Paths.cache, 'exports');
+    if (
+      !file.uri.startsWith(directory.uri.replace(/\/$/, '') + '/') ||
+      file.uri.slice(directory.uri.replace(/\/$/, '').length + 1).includes('/')
+    )
+      throw new Error('Ungültige Backup-Referenz.');
+    const stored = new File(file.uri);
+    if (stored.exists) stored.delete();
   }
   async pickBackup() {
     const result = await DocumentPicker.getDocumentAsync({

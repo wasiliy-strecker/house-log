@@ -13,8 +13,7 @@
     "lint": "eslint src tests app.config.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm test",
-    "postinstall": "node scripts/patch-drag-list.cjs"
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test"
   },
   "dependencies": {
     "@noble/ciphers": "2.4.0",
@@ -41,7 +40,6 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.3",
-    "react-native-draggable-flatlist": "4.0.3",
     "react-native-gesture-handler": "~2.32.0",
     "react-native-image-viewing": "0.2.2",
     "react-native-reanimated": "4.5.1",

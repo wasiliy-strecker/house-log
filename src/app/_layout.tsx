@@ -1,41 +1,122 @@
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
+import {
+  ThemeProvider as NavigationThemeProvider,
+  DefaultTheme,
+  DarkTheme,
+} from 'expo-router/react-navigation';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { Text, View } from 'react-native';
 import { ServicesProvider } from '../core/composition';
-import { colors } from '../core/ui/components';
-
+import { ThemeProvider, useTheme } from '../core/ui/theme';
+import { FeedbackProvider } from '../core/ui/feedback';
+import { IconButton } from '../core/ui/components';
+function Routes() {
+  const c = useTheme(),
+    safe = useSafeAreaInsets();
+  const theme = c.dark ? DarkTheme : DefaultTheme;
+  return (
+    <NavigationThemeProvider
+      value={{
+        ...theme,
+        colors: {
+          ...theme.colors,
+          background: c.background,
+          card: c.background,
+          text: c.ink,
+          primary: c.primary,
+          border: c.border,
+        },
+      }}
+    >
+      <StatusBar style={c.dark ? 'light' : 'dark'} />
+      <Stack
+        screenOptions={{
+          contentStyle: { backgroundColor: c.background },
+          animation: 'slide_from_right',
+          header: ({ options, back, route }) => (
+            <View
+              style={{ paddingTop: safe.top, backgroundColor: c.background }}
+            >
+              <View
+                style={{
+                  height: 56,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingLeft: back ? 4 : 16,
+                  paddingRight: 4,
+                  gap: 4,
+                }}
+              >
+                {!!back && (
+                  <IconButton
+                    icon="arrow_back"
+                    label="Zurück"
+                    onPress={() => {
+                      if (router.canGoBack()) router.back();
+                      else router.replace('/');
+                    }}
+                  />
+                )}
+                <Text
+                  numberOfLines={1}
+                  style={{
+                    fontFamily: 'Roboto',
+                    fontSize: 22,
+                    color: c.ink,
+                    flex: 1,
+                    marginLeft: back ? 16 : 0,
+                  }}
+                >
+                  {options.title ?? 'Hausakte'}
+                </Text>
+                {options.headerRight?.({ tintColor: c.ink, canGoBack: !!back })}
+                {route.name === 'index' && (
+                  <IconButton
+                    icon="settings_outlined"
+                    label="Einstellungen"
+                    onPress={() => router.push('/settings')}
+                  />
+                )}
+              </View>
+            </View>
+          ),
+        }}
+      >
+        <Stack.Screen name="index" options={{ title: 'Hausakte' }} />
+        <Stack.Screen name="record/[id]" options={{ title: 'Akte' }} />
+        <Stack.Screen name="record/edit" options={{ title: 'Akte anlegen' }} />
+        <Stack.Screen
+          name="record/history"
+          options={{ title: 'Aktenverlauf' }}
+        />
+        <Stack.Screen
+          name="entry/edit"
+          options={{ title: 'Eintrag erfassen' }}
+        />
+        <Stack.Screen name="entry/[id]" options={{ title: 'Eintrag' }} />
+        <Stack.Screen name="pdf/[id]" options={{ title: 'Hausprotokoll' }} />
+        <Stack.Screen name="settings" options={{ title: 'Einstellungen' }} />
+        <Stack.Screen name="privacy" options={{ title: 'Datenschutz' }} />
+      </Stack>
+    </NavigationThemeProvider>
+  );
+}
 export default function Layout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <ServicesProvider>
-          <StatusBar style="dark" />
-          <Stack
-            screenOptions={{
-              headerStyle: { backgroundColor: colors.background },
-              headerTintColor: colors.primary,
-              contentStyle: { backgroundColor: colors.background },
-              headerTitleStyle: { fontWeight: '700' },
-            }}
-          >
-            <Stack.Screen name="index" options={{ title: 'Hausakte' }} />
-            <Stack.Screen
-              name="record/[id]"
-              options={{ title: 'Meine Akte' }}
-            />
-            <Stack.Screen
-              name="record/edit"
-              options={{ title: 'Akte bearbeiten' }}
-            />
-            <Stack.Screen name="entry/edit" options={{ title: 'Eintrag' }} />
-            <Stack.Screen
-              name="settings"
-              options={{ title: 'Einstellungen' }}
-            />
-            <Stack.Screen name="privacy" options={{ title: 'Datenschutz' }} />
-          </Stack>
-        </ServicesProvider>
+        <ThemeProvider>
+          <FeedbackProvider>
+            <ServicesProvider>
+              <Routes />
+            </ServicesProvider>
+          </FeedbackProvider>
+        </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

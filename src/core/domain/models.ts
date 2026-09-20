@@ -120,6 +120,8 @@ export type EntryDraft = {
   form: EntryForm;
   updatedAt: string;
   external: 'camera' | 'gallery' | 'pdf' | 'scanner' | null;
+  captureStage?: 'choose' | 'form';
+  captureSource?: 'manual' | 'photo';
 };
 export const defaultActivities = [
   'Wartung',

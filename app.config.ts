@@ -6,7 +6,7 @@ const config: ExpoConfig = {
   version: '1.0.0',
   scheme: 'hausakte',
   orientation: 'default',
-  userInterfaceStyle: 'light',
+  userInterfaceStyle: 'automatic',
   platforms: ['android'],
   icon: './assets/icon.png',
   android: {
@@ -15,7 +15,7 @@ const config: ExpoConfig = {
     allowBackup: false,
     adaptiveIcon: {
       foregroundImage: './assets/icon-foreground.png',
-      backgroundColor: '#12666B',
+      backgroundColor: '#315E80',
     },
     permissions: [
       'android.permission.CAMERA',

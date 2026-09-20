@@ -29,3 +29,11 @@ Vor Commit `npm run check`, native JVM-Tests bei Kotlin-Änderungen und den
 zusammenhängenden Integrationstest ausführen. Native Gerätegrenzen dokumentieren.
 Changelog unter Workspace `CODEX/changelog/` und Kopie unter `docs/changelog/`
 ablegen, da der Workspace kein Git-Repository ist. Nur dieses Repo committen.
+
+## Verbindliche Bedienreferenz
+
+Die aktuelle Fahrzeugakte ist auch für Aussehen, Anordnung und Bildschirmfolge
+verbindlich. Gleiches Material-3-Thema und System-Hell/Dunkelmodus verwenden.
+Hausbegriffe und Haus-Stammdaten bleiben fachlich passend. Keine separate
+Designsprache oder verkürzten Abläufe einführen. Referenzstand und tatsächlich
+geprüfte Android-Abläufe in PROCESSING_PARITY und VALIDATION nachführen.

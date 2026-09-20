@@ -13,6 +13,8 @@ Einbau- oder Anschaffungsdatum. Chronologische Einträge mit freien Aktivitäten
 Zeitpunkt, Dienstleister, exakten Euro-Centbeträgen, Notizen und optionalem Messstand.
 Verglichen werden nur Messwerte derselben Einheit. Suche und zehn Einträge pro Seite.
 Bearbeiten ersetzt den aktuellen Stand ohne Revisionsverlauf.
+Oberfläche und Bildschirmfolge folgen der Fahrzeugakte mit blauem Material-3-
+Design, System-Hell/Dunkelmodus, separater Eintragsdetailseite und Verlauf.
 
 Kamera und Galerie-Mehrfachauswahl, JPEG-Optimierung auf höchstens 1920 Pixel bei
 Qualität 88 ohne übernommene EXIF-Daten. Großansicht mit Wischen und Zoom.
@@ -23,6 +25,8 @@ PDF-Mehrfachimport und Google-ML-Kit-Scan mit bis zu 20 Seiten. Unveränderte
 Originaldateien mit Prüfsummen, Strukturprüfung und unabhängiger Prüfung durch
 Android PdfRenderer. Einzel- und Gesamtprotokolle, kompakt oder mit Fotos und
 direkt zugeordneten Original-PDF-Seiten. Gespeicherte Protokolle bleiben unverändert.
+Interne Vorschau mit Zoom, Android-Druckdialog und Teilen. Backups werden über
+die Android-Speicherortauswahl abgelegt, mit Wiederholen nach einem Abbruch.
 
 Dauerhafte Formularentwürfe vor externen Medienaufrufen, lokale wiederholte
 Erinnerungen und passwortgeschützte `.habackup`-Sicherungen. Wiederherstellung
@@ -99,7 +103,7 @@ haben UUIDs und ISO-Zeitstempel. Attachment-Dateinamen sind relative UUID-Schlü
 Prüfsummen sind SHA-256. Geldbeträge sind sichere ganze Centbeträge.
 
 Das app-lokale Expo-Modul in `modules/house-native` enthält Android-Scanner,
-PDF-Prüfung, Öffnen und Alarmplanung. PDF-Erstellung und Seitenübernahme verwenden
+PDF-Prüfung, Vorschau, Drucken, Speicherortauswahl und Alarmplanung. PDF-Erstellung und Seitenübernahme verwenden
 `pdf-lib`. AES-GCM verwendet Noble Ciphers. PBKDF2 verwendet ab Android 8 den nativen
 JCA-Provider und unter Android 7 Noble Hashes als langsameren Fallback.
 Es gibt keine selbst implementierten kryptografischen Primitive.

@@ -14,12 +14,16 @@ export interface SqlConnection {
 export interface Repository {
   snapshot(): Promise<Snapshot>;
   records(): Promise<HouseRecord[]>;
+  entry(id: string): Promise<HouseEntry | null>;
+  dashboard(): Promise<
+    { record: HouseRecord; latest: HouseEntry | null; lastEdited: string }[]
+  >;
   entries(
     recordId: string,
     search?: string,
     offset?: number,
     limit?: number,
-  ): Promise<{ rows: HouseEntry[]; total: number }>;
+  ): Promise<{ rows: HouseEntry[]; total: number; hasAttachments: boolean }>;
   previousMeasurement(entry: HouseEntry): Promise<HouseEntry | null>;
   reports(recordId: string): Promise<SavedReport[]>;
   drafts(): Promise<EntryDraft[]>;

@@ -1,109 +1,107 @@
-import { useCallback, useState } from 'react';
-import { Alert, AppState, PermissionsAndroid, Platform } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { useState } from 'react';
 import { useServices } from '../../core/composition';
-import type { ReminderStatus } from '../../core/native/house-native';
 import { useTask } from '../../core/ui/use-task';
+import { useFeedback } from '../../core/ui/feedback';
+import { useLeaveGuard } from '../../core/ui/use-leave-guard';
 import { errorText } from '../../core/ui/components';
-export function useSettings() {
-  const { backup, media, house, native, refresh } = useServices();
-  const [password, setPassword] = useState('');
-  const [repeat, setRepeat] = useState('');
-  const [status, setStatus] = useState<ReminderStatus>();
-  const task = useTask();
-  const { setError } = task;
-  const load = useCallback(() => {
-    native
-      .reminderStatus()
-      .then(setStatus)
-      .catch((e) => setError(errorText(e)));
-  }, [native, setError]);
-  useFocusEffect(
-    useCallback(() => {
-      load();
-      const listener = AppState.addEventListener('change', (state) => {
-        if (state === 'active') load();
-      });
-      return () => listener.remove();
-    }, [load]),
-  );
+import type { PreparedBackup } from '../../core/media/media-service';
+export function useSettings(
+  askPassword: (confirm: boolean) => Promise<string | null>,
+) {
+  const { backup, media, refresh } = useServices();
+  const task = useTask(),
+    feedback = useFeedback();
+  const [phase, setPhase] = useState('');
+  useLeaveGuard({ dirty: false, busy: task.busy, discard: async () => {} });
   return {
     ...task,
-    password,
-    setPassword,
-    repeat,
-    setRepeat,
-    status,
-    create: () =>
-      task.run(async () => {
-        if (password !== repeat)
-          throw new Error('Die beiden Passwörter stimmen nicht überein.');
-        const bytes = await backup.create(password);
-        await media.exportBackup(bytes);
-        setPassword('');
-        setRepeat('');
-        task.setNotice(
-          'Das verschlüsselte Backup wurde an die gewählte Speicher- oder Teilen-App übergeben. Bitte die Datei dort aufbewahren.',
-        );
-      }),
+    phase,
+    create: async () => {
+      const password = await askPassword(true);
+      if (password === null) return;
+      await task.run(async () => {
+        let prepared: PreparedBackup | undefined;
+        try {
+          setPhase('Backup wird vorbereitet und verschlüsselt …');
+          prepared = await media.prepareBackup(await backup.create(password));
+          setPhase('');
+          let finished = false;
+          while (!finished) {
+            let saved = false;
+            let failure = '';
+            try {
+              saved = (await media.saveBackup(prepared)) === 'saved';
+            } catch (e) {
+              failure = errorText(e);
+            }
+            if (saved) {
+              const action = await feedback.choose({
+                title: 'Backup gespeichert',
+                message: `${prepared.name} wurde im gewählten Speicherort abgelegt. Bewahre die Datei und dein Passwort sicher auf.`,
+                dialog: true,
+                options: [
+                  { value: 'done', label: 'Fertig' },
+                  {
+                    value: 'share',
+                    label: 'Teilen',
+                    icon: 'ios_share_outlined',
+                  },
+                ],
+              });
+              if (action === 'share') await media.shareBackup(prepared);
+              finished = true;
+            } else {
+              const action = await feedback.choose({
+                title: 'Backup noch nicht gespeichert',
+                message:
+                  failure ||
+                  'Die Speicherortauswahl wurde abgebrochen. Du kannst erneut einen Speicherort wählen.',
+                dialog: true,
+                options: [
+                  { value: 'discard', label: 'Verwerfen', danger: true },
+                  { value: 'retry', label: 'Erneut speichern' },
+                ],
+              });
+              finished = action !== 'retry';
+            }
+          }
+        } finally {
+          setPhase('');
+          if (prepared) await media.discardBackup(prepared).catch(() => {});
+        }
+      });
+    },
     restore: () =>
       task.run(async () => {
-        if (!password)
-          throw new Error('Bitte zuerst das Backup-Passwort eingeben.');
         const bytes = await media.pickBackup();
         if (!bytes) return;
-        const decoded = await backup.codec.decode(bytes, password);
-        const accepted = await new Promise<boolean>((resolve) =>
-          Alert.alert(
-            'Geprüftes Backup übernehmen?',
-            `${decoded.data.records.length} Akten, ${decoded.data.entries.length} Einträge und ${decoded.data.reports.length} Protokolle. Neuere lokale Einträge bleiben erhalten. Fehlende passende Dateien werden repariert.`,
+        const password = await askPassword(false);
+        if (password === null) return;
+        try {
+          setPhase('Backup wird geprüft …');
+          const decoded = await backup.codec.decode(bytes, password);
+          setPhase('');
+          if (
+            !(await feedback.confirm(
+              'Backup wiederherstellen?',
+              `${decoded.data.records.length} Akten, ${decoded.data.entries.length} Einträge und ${decoded.data.reports.length} Hausprotokolle werden importiert. Neuere lokale Einträge werden nicht überschrieben.`,
+              'Wiederherstellen',
+              false,
+            ))
+          )
+            return;
+          setPhase('Backup wird wiederhergestellt …');
+          const result = await backup.restore(decoded);
+          refresh();
+          feedback.notify(
             [
-              {
-                text: 'Abbrechen',
-                style: 'cancel',
-                onPress: () => resolve(false),
-              },
-              { text: 'Wiederherstellen', onPress: () => resolve(true) },
-            ],
-            { cancelable: true, onDismiss: () => resolve(false) },
-          ),
-        );
-        if (!accepted) return;
-        const result = await backup.restore(decoded);
-        refresh();
-        load();
-        setPassword('');
-        setRepeat('');
-        task.setNotice(
-          [
-            'Backup wiederhergestellt. Die Daten sind sofort in deinen Akten sichtbar.',
-            ...result.warnings,
-          ].join('\n'),
-        );
-      }),
-    permissions: () =>
-      task.run(async () => {
-        if (Platform.OS === 'android' && Number(Platform.Version) >= 33)
-          await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+              'Backup wiederhergestellt. Die Daten sind sofort in deinen Akten sichtbar.',
+              ...result.warnings,
+            ].join('\n'),
           );
-        const warnings = await house.syncReminders();
-        task.setNotice(
-          warnings.join('\n') || 'Erinnerungen wurden aktualisiert.',
-        );
-        load();
-      }),
-    openSettings: (exact: boolean) =>
-      task.run(() => native.openReminderSettings(exact)),
-    test: (punctual: boolean) =>
-      task.run(async () => {
-        const result = await native.testReminder(punctual);
-        task.setNotice(
-          result === 'posted'
-            ? 'Test-Erinnerung gesendet. Sie verschwindet nach einer Minute.'
-            : 'Die Test-Erinnerung konnte nicht angezeigt werden. Bitte App- und Kanalberechtigungen prüfen.',
-        );
-        load();
+        } finally {
+          setPhase('');
+        }
       }),
   };
 }

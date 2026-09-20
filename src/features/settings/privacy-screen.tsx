@@ -53,13 +53,16 @@ export function PrivacyScreen() {
       <Card>
         <Heading>Export und Backup</Heading>
         <Body>
-          Erst wenn du Öffnen, Teilen oder Backup speichern auswählst, erhält
-          die von dir gewählte andere App Zugriff auf die ausgewählte Datei. Für
-          diese App und den gewählten Speicherort gelten deren eigene Regeln.
-          PDF-Exporte sind unverschlüsselt. Hausakte-Backups werden mit
-          AES-256-GCM und einem aus deinem Passwort abgeleiteten Schlüssel
-          verschlüsselt. Das Passwort wird nicht gespeichert.
-          Android-Systembackups der App sind deaktiviert.
+          Die PDF-Vorschau bleibt innerhalb der App. Wenn du Teilen, Drucken
+          oder Backup speichern auswählst, erhält die gewählte App, der
+          Android-Druckdienst oder der gewählte Speicheranbieter Zugriff auf
+          diese Datei. Für diese Dienste und Speicherorte gelten deren eigene
+          Regeln. Vorschauseiten und vorbereitete Exportdateien werden
+          vorübergehend im privaten App-Cache gespeichert. PDF-Exporte sind
+          unverschlüsselt. Hausakte-Backups werden mit AES-256-GCM und einem aus
+          deinem Passwort abgeleiteten Schlüssel verschlüsselt. Das Passwort
+          wird nicht gespeichert. Android-Systembackups der App sind
+          deaktiviert.
         </Body>
       </Card>
       <Card>

@@ -15,3 +15,5 @@ android/**/.cxx/
 *.habackup
 test-results/
 .DS_Store
+
+__pycache__/

@@ -160,6 +160,46 @@ export async function androidCheck(
       'Original-PDF verändert.',
     );
     step('Eintrag bearbeitet und sortiert. Vollständiges PDF nativ geöffnet.');
+    const preview = await houseNative.openPdfPreview(vault.uri(report.file));
+    assert(preview.pages.length === 9, 'Vorschauseiten fehlen.');
+    const landscapePreview = await houseNative.openPdfPreview(
+      vault.uri(first.file),
+    );
+    assert(
+      landscapePreview.pages[0]!.width > landscapePreview.pages[0]!.height,
+      'Querformat in Vorschau verloren.',
+    );
+    await houseNative.closePdfPreview(landscapePreview.session);
+    for (let index = 0; index < preview.pages.length; index++) {
+      const uri = await houseNative.renderPdfPage(preview.session, index, 900);
+      const page = new File(uri);
+      assert(
+        page.exists && page.size > 100,
+        'Vorschauseite wurde nicht gerendert.',
+      );
+    }
+    const again = await houseNative.renderPdfPage(preview.session, 0, 900);
+    assert(
+      new File(again).exists,
+      'Verdrängte Vorschauseite wurde nicht erneut geladen.',
+    );
+    await houseNative.closePdfPreview(preview.session);
+    assert(!new File(again).exists, 'Vorschaucache nach Schließen erhalten.');
+    let closedRejected = false;
+    try {
+      await houseNative.renderPdfPage(preview.session, 0, 900);
+    } catch {
+      closedRejected = true;
+    }
+    assert(closedRejected, 'Geschlossene PDF-Vorschau akzeptiert.');
+    assert(
+      digest(await vault.read(report.file)) === digest(reportBytes),
+      'Vorschau verändert Original.',
+    );
+    step(
+      'Native PDF-Vorschau: neun Seiten, Querformat, Cache-Neuladen, Schließen und unverändertes Original geprüft.',
+    );
+
     const change = await house.draft(record.id, updated.entry);
     change.form.note = 'Spätere Änderung';
     await house.saveEntry(change);

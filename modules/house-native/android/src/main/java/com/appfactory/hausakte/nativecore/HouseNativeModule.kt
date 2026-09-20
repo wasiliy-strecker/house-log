@@ -16,9 +16,33 @@ import java.io.File
 import java.util.UUID
 
 class HouseNativeModule : Module() {
+    private var previews: PdfPreviewStore? = null
+    @Synchronized private fun previewStore(): PdfPreviewStore = previews ?: PdfPreviewStore(context).also { previews = it }
     private val context get() = requireNotNull(appContext.reactContext)
     override fun definition() = ModuleDefinition {
         Name("HouseNative")
+        AsyncFunction("openPdfPreview") { uri: String -> previewStore().open(uri) }
+        AsyncFunction("renderPdfPage") { session: String, index: Int, width: Int -> previewStore().render(session, index, width) }
+        AsyncFunction("closePdfPreview") { session: String -> previewStore().close(session) }
+        AsyncFunction("printPdf") { uri: String, name: String ->
+            val file = privateDocument(context, uri)
+            val activity = requireNotNull(appContext.currentActivity)
+            val manager = activity.getSystemService(android.content.Context.PRINT_SERVICE) as android.print.PrintManager
+            manager.print(name, OriginalPdfPrintAdapter(file, name), null)
+            Unit
+        }.runOnQueue(Queues.MAIN)
+        AsyncFunction("saveBackupFile") { uri: String, name: String, promise: Promise ->
+            try {
+                val file = privateDocument(context, uri)
+                val token = UUID.randomUUID().toString()
+                if (!SaveDocumentActivity.begin(token, SaveDocumentActivity.Pending(file, name, promise))) {
+                    promise.reject("SAVE_BUSY", "Eine Speicherortauswahl ist bereits geöffnet.", null)
+                } else {
+                    try { requireNotNull(appContext.currentActivity).startActivity(Intent(context, SaveDocumentActivity::class.java).putExtra("save_token", token)) }
+                    catch (_: Exception) { SaveDocumentActivity.finish(token, false, "Die Speicherortauswahl konnte nicht geöffnet werden.") }
+                }
+            } catch (_: Exception) { promise.reject("SAVE_SOURCE", "Die vorbereitete Backup-Datei ist nicht verfügbar.", null) }
+        }.runOnQueue(Queues.MAIN)
         AsyncFunction("deriveBackupKey") { password: String, salt: String, iterations: Int ->
             PasswordKey.derive(password, salt, iterations)
         }
@@ -33,7 +57,7 @@ class HouseNativeModule : Module() {
                 } catch (error: Exception) { ScanActivity.completion.finish(token, null, "Scanner konnte nicht geöffnet werden. PDF-Import bleibt möglich.") }
             }
         }.runOnQueue(Queues.MAIN)
-        OnDestroy { ScanActivity.completion.abandon() }
+        OnDestroy { ScanActivity.completion.abandon(); previews?.closeAll() }
         AsyncFunction("validatePdf") { uri: String ->
             val file = File(requireNotNull(Uri.parse(uri).path))
             ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).use { descriptor ->
