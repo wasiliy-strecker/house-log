@@ -248,3 +248,26 @@ an, passend zu `AppTheme.actionTextStyle`. Schriftgröße 16, Zeilenhöhe 20,
 Mindesthöhe 56 und Symbolgröße 22 bleiben gleich. Die Systemschriftgröße wird
 weiterhin berücksichtigt. Die Button-Anordnung selbst ist eine TypeScript-
 Änderung und wird über Metro bereitgestellt.
+
+## Dev-App ohne Expo-Menü
+
+Auf Nutzerwunsch entfernt Hausakte die Expo-Menüoberfläche auch aus dem sichtbaren
+Dev-Betrieb. Nur den schwebenden Button abzuschalten genügte nicht, weil Expo eine
+Einführung mit „Continue“ und weitere Öffnungswege besitzt.
+
+Das Android-Config-Plugin setzt die Defaults für Einführung, Startanzeige und FAB.
+MainActivity setzt im Debug-Build dieselben Einstellungen auch für vorhandene
+Installationen und deaktiviert Menügesten sowie Tastenkürzel. Über Androids
+Fragment-Lifecycle wird ausschließlich `expo.modules.devmenu.DevMenuFragment`
+vor der ersten Darstellung unsichtbar und anschließend entfernt. Dadurch enden
+auch seine Sensor- und Touch-Listener. Der Menü-Key wird zusätzlich abgefangen,
+damit React Natives Ersatzmenü nicht geöffnet wird. Bei einem Reload gilt dieselbe
+Regel erneut. Die Fragmentkennung wurde gegen die installierte Expo-Version geprüft
+und muss bei künftigen SDK-Upgrades erneut geprüft werden.
+
+React-Host, Navigation, Metro, Fast Refresh und Dev-Launcher bleiben verfügbar.
+Die Expo-Entwicklungsabhängigkeiten bleiben Bestandteil des Development Builds.
+Entfernt ist deren Menüoberfläche im App-Betrieb. node_modules bleibt unverändert.
+Das Config-Plugin erhält die app-lokale Android-Anpassung bei Prebuild. Im Release
+wird diese Debug-Lifecycle-Anpassung nicht ausgeführt. Native Änderung erfordert
+neuen Dev-Build und ein datenbewahrendes APK-Update.

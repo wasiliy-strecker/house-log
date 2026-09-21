@@ -11,11 +11,50 @@ import com.facebook.react.defaults.DefaultReactActivityDelegate
 import expo.modules.ReactActivityDelegateWrapper
 
 class MainActivity : ReactActivity() {
+  // Hausakte: no developer menu in the user-facing Dev app.
+  private fun removeDevelopmentMenu() {
+    getSharedPreferences("expo.modules.devmenu.sharedpreferences", MODE_PRIVATE)
+      .edit()
+      .putBoolean("showsAtLaunch", false)
+      .putBoolean("isOnboardingFinished", true)
+      .putBoolean("showFab", false)
+      .putBoolean("motionGestureEnabled", false)
+      .putBoolean("touchGestureEnabled", false)
+      .putBoolean("keyCommandsEnabled", false)
+      .apply()
+
+    // Keep Expo's React host and Metro connection, remove only its menu fragment.
+    // Hide the view before its first draw, then remove the fragment so its
+    // sensor and touch listeners are disposed as well. This also covers reloads.
+    supportFragmentManager.registerFragmentLifecycleCallbacks(
+      object : androidx.fragment.app.FragmentManager.FragmentLifecycleCallbacks() {
+        override fun onFragmentViewCreated(
+          fm: androidx.fragment.app.FragmentManager,
+          fragment: androidx.fragment.app.Fragment,
+          view: android.view.View,
+          savedInstanceState: Bundle?
+        ) {
+          if (fragment.javaClass.name == "expo.modules.devmenu.DevMenuFragment") {
+            view.visibility = android.view.View.GONE
+            fm.beginTransaction().remove(fragment).commitAllowingStateLoss()
+          }
+        }
+      },
+      false
+    )
+  }
+
+  override fun onKeyUp(keyCode: Int, event: android.view.KeyEvent): Boolean {
+    if (BuildConfig.DEBUG && keyCode == android.view.KeyEvent.KEYCODE_MENU) return true
+    return super.onKeyUp(keyCode, event)
+  }
+
   override fun onCreate(savedInstanceState: Bundle?) {
     // Set the theme to AppTheme BEFORE onCreate to support
     // coloring the background, status bar, and navigation bar.
     // This is required for expo-splash-screen.
     setTheme(R.style.AppTheme);
+    if (BuildConfig.DEBUG) removeDevelopmentMenu()
     super.onCreate(null)
   }
 

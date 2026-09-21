@@ -3,11 +3,73 @@ const {
   withAndroidManifest,
   withProjectBuildGradle,
   withDangerousMod,
+  withMainActivity,
 } = require('expo/config-plugins');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
 module.exports = function withHouseAndroid(config) {
+  config = withMainActivity(config, (mod) => {
+    let source = mod.modResults.contents;
+    const marker = '// Hausakte: no developer menu in the user-facing Dev app.';
+    if (!source.includes(marker)) {
+      const activity = 'class MainActivity : ReactActivity() {';
+      const startup = '    super.onCreate(null)';
+      if (!source.includes(activity) || !source.includes(startup))
+        throw new Error(
+          'Hausakte: MainActivity template changed. Review developer-menu suppression.',
+        );
+      source = source.replace(
+        activity,
+        `${activity}
+  ${marker}
+  private fun removeDevelopmentMenu() {
+    getSharedPreferences("expo.modules.devmenu.sharedpreferences", MODE_PRIVATE)
+      .edit()
+      .putBoolean("showsAtLaunch", false)
+      .putBoolean("isOnboardingFinished", true)
+      .putBoolean("showFab", false)
+      .putBoolean("motionGestureEnabled", false)
+      .putBoolean("touchGestureEnabled", false)
+      .putBoolean("keyCommandsEnabled", false)
+      .apply()
+
+    // Keep Expo's React host and Metro connection, remove only its menu fragment.
+    // Hide the view before its first draw, then remove the fragment so its
+    // sensor and touch listeners are disposed as well. This also covers reloads.
+    supportFragmentManager.registerFragmentLifecycleCallbacks(
+      object : androidx.fragment.app.FragmentManager.FragmentLifecycleCallbacks() {
+        override fun onFragmentViewCreated(
+          fm: androidx.fragment.app.FragmentManager,
+          fragment: androidx.fragment.app.Fragment,
+          view: android.view.View,
+          savedInstanceState: Bundle?
+        ) {
+          if (fragment.javaClass.name == "expo.modules.devmenu.DevMenuFragment") {
+            view.visibility = android.view.View.GONE
+            fm.beginTransaction().remove(fragment).commitAllowingStateLoss()
+          }
+        }
+      },
+      false
+    )
+  }
+
+  override fun onKeyUp(keyCode: Int, event: android.view.KeyEvent): Boolean {
+    if (BuildConfig.DEBUG && keyCode == android.view.KeyEvent.KEYCODE_MENU) return true
+    return super.onKeyUp(keyCode, event)
+  }
+`,
+      );
+      source = source.replace(
+        startup,
+        `    if (BuildConfig.DEBUG) removeDevelopmentMenu()
+${startup}`,
+      );
+    }
+    mod.modResults.contents = source;
+    return mod;
+  });
   // Android native-stack does not expose a duration option. Override only the
   // four resources used by slide_from_right, including its reverse transition.
   config = withDangerousMod(config, [
@@ -100,15 +162,19 @@ androidComponents {
     const app = mod.modResults.manifest.application[0];
     app.$['android:allowBackup'] = 'false';
     app.$['android:fullBackupContent'] = 'false';
+    const menuDefaults = {
+      EXDevMenuShowFloatingActionButton: false,
+      EXDevMenuShowsAtLaunch: false,
+      EXDevMenuIsOnboardingFinished: true,
+    };
     app['meta-data'] = (app['meta-data'] ?? []).filter(
-      (item) => item.$['android:name'] !== 'EXDevMenuShowFloatingActionButton',
+      (item) => !(item.$['android:name'] in menuDefaults),
     );
-    app['meta-data'].push({
-      $: {
-        'android:name': 'EXDevMenuShowFloatingActionButton',
-        'android:value': 'false',
-      },
-    });
+    for (const [name, value] of Object.entries(menuDefaults)) {
+      app['meta-data'].push({
+        $: { 'android:name': name, 'android:value': String(value) },
+      });
+    }
     return mod;
   });
 };

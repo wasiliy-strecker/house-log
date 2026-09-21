@@ -301,3 +301,30 @@ Signatur. `adb install -r -t -g --no-streaming` war erfolgreich. Keine Deinstall
 oder Datenlöschung. Die Dev-App wurde mit dem bestehenden Metro-Server gestartet.
 Die Button-Änderungen werden von Metro geladen und sind kein neu gebündelter
 APK-Stand. Die visuelle Abnahme bleibt offen.
+
+## Entfernung des Expo-Menüs vom 21.09.2026
+
+Prüfumfang dieser Änderung: Format, ESLint einschließlich Config-Plugin,
+Typecheck, nativer Dev-Build, Paket- und Signaturprüfung vor dem Update und eine
+kurze Startkontrolle. Keine umfangreiche Testsuite oder automatisierte fachliche
+Bedienprüfung. Beim Update ausschließlich `adb install -r -t -g --no-streaming`.
+
+Manuelle Nachkontrolle: Hausakte öffnen und anschließend normal bedienen.
+Kein „Hausakte Dev / Continue“-Bereich oder Expo-Floating-Button. Schütteln und
+Drei-Finger-Berührung dürfen das Menü nicht zurückbringen. Ein Fast Refresh soll
+weiterhin die Oberfläche aktualisieren, ohne ein Menü einzublenden.
+
+Bestanden: Formatprüfung, ESLint einschließlich Config-Plugin, Typecheck,
+Diff-Prüfung und nativer Dev-Build. AAPT bestätigt die drei Menü-Defaults in der
+gepackten APK. Paket `com.appfactory.house_log.dev`, Version 1.0.0 / Code 1,
+Debug-Flag, Installer und identische Signatur vor dem Update geprüft.
+Datenbewahrende Installation mit `adb install -r -t -g --no-streaming` erfolgreich.
+
+Kurze Startkontrolle auf dem HONOR: Activity und ReactSurfaceView vorhanden,
+kein aktives DevMenuFragment. Die gespeicherten Menü-Flags bestätigen ausgeschaltete
+Startanzeige, FAB und Gesten sowie abgeschlossene Einführung. Metro bestätigt die
+Verbindung. Das Telefon war gesperrt, daher keine visuelle Abnahme oder tatsächliche
+Schüttel- und Drei-Finger-Prüfung. Keine fremde Emulator-Sitzung verändert.
+
+Dev-APK: `build/releases/dev/Hausakte-Dev-1.0.0-1-no-dev-menu-20260921.apk`.
+Die Dev-App benötigt weiterhin Metro. Kein Store-Build oder Push.
