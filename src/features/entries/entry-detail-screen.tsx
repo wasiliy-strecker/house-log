@@ -1,7 +1,6 @@
 import { View, Text } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import {
-  ActionRow,
   Body,
   Button,
   Busy,
@@ -52,31 +51,27 @@ export function EntryDetailScreen() {
       <Body>
         {vm.record?.category} · {vm.record?.name}
       </Body>
-      <ActionRow>
-        {[
-          <Button
-            key="edit"
-            secondary
-            icon="edit"
-            title="Bearbeiten"
-            onPress={() =>
-              router.push({
-                pathname: '/entry/edit',
-                params: { recordId: e.recordId, entryId: id },
-              })
-            }
-          />,
-          <Button
-            key="delete"
-            secondary
-            danger
-            icon="delete_outline"
-            title="Eintrag löschen"
-            disabled={vm.busy}
-            onPress={() => void vm.remove()}
-          />,
-        ]}
-      </ActionRow>
+      <View style={{ gap: 12, marginTop: 4, marginBottom: 6 }}>
+        <Button
+          secondary
+          icon="edit_outlined"
+          title="Bearbeiten"
+          onPress={() =>
+            router.push({
+              pathname: '/entry/edit',
+              params: { recordId: e.recordId, entryId: id },
+            })
+          }
+        />
+        <Button
+          secondary
+          danger
+          icon="delete_outline"
+          title="Eintrag löschen"
+          disabled={vm.busy}
+          onPress={() => void vm.remove()}
+        />
+      </View>
       <Notice error text={vm.error} />
       <Card>
         <Body strong>Eintragsinformationen</Body>

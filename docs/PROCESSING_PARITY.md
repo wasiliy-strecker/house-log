@@ -234,3 +234,17 @@ Der native Build und seine gepackten Ressourcen werden geprüft. Daraus folgt ke
 Garantie über Bildraten auf langsamen Geräten. Die manuelle Bedienprüfung bleibt
 wie vereinbart beim Nutzer. Keine zusätzliche Navigationsbibliothek und keine
 Änderung der Bildschirmfolge oder der gespeicherten Daten.
+
+## Eintragsaktionen vom 21.09.2026
+
+Der Smartphone-Screenshot von 19:49 zeigte die Aktionen der Eintragsdetailseite
+noch nebeneinander. Die Eintragsseite verwendet nun wie `_ReadingActions` in der
+Fahrzeugakte eine volle Spaltenbreite für „Bearbeiten“ und „Eintrag löschen“ mit
+12 Punkten Abstand. Der Abstand oberhalb beträgt zusammen mit dem Seitenlayout
+16 Punkte, darunter 18 Punkte. Das Bearbeiten-Symbol verwendet die Umrissvariante.
+
+Die gemeinsame Button- und FAB-Typografie fordert jetzt ausdrücklich Gewicht 600
+an, passend zu `AppTheme.actionTextStyle`. Schriftgröße 16, Zeilenhöhe 20,
+Mindesthöhe 56 und Symbolgröße 22 bleiben gleich. Die Systemschriftgröße wird
+weiterhin berücksichtigt. Die Button-Anordnung selbst ist eine TypeScript-
+Änderung und wird über Metro bereitgestellt.

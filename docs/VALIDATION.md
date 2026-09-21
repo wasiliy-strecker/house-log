@@ -279,3 +279,25 @@ vorhandene Installation und Signatur:
 cd /home/unknown/dev/app_factory/hausakte
 bash scripts/install-dev.sh A5CS024205005243 build/releases/dev/Hausakte-Dev-1.0.0-1-navigation-200ms-20260921.apk
 ```
+
+## Eintragsaktionen vom 21.09.2026
+
+Grundlage: letzter Smartphone-Screenshot von 19:49 sowie `_ReadingActions` und
+`AppTheme.actionTextStyle` der aktuellen Fahrzeugakte. Anordnung jetzt untereinander
+mit identischen Vorgaben für Buttonhöhe, Textgröße und Gewicht.
+
+Manuelle Abnahme durch den Nutzer, noch offen: Gespeicherten Eintrag öffnen.
+Bearbeiten und Eintrag löschen müssen untereinander die volle Breite nutzen.
+Normale und große Systemschrift dürfen keine abgeschnittenen Beschriftungen
+verursachen. Bearbeiten öffnet weiterhin das Formular, Löschen weiterhin die
+Bestätigung. Die Löschbestätigung kann zur Prüfung abgebrochen werden.
+Keine automatisierte Smartphone-Bedienprüfung oder zusätzliche Testsuite.
+
+Formatprüfung, Lint ohne Warnungen, Typecheck und Diff-Prüfung dieser UI-Änderung
+bestanden. Das nun wieder angeschlossene HONOR erhielt außerdem das zuvor
+vorbereitete native 200-ms-Update aus Commit 312c329. Der Installationshelfer
+bestätigte Dev-Paket, Version, Debug-Flag, bisherigen Installer und gleiche
+Signatur. `adb install -r -t -g --no-streaming` war erfolgreich. Keine Deinstallation
+oder Datenlöschung. Die Dev-App wurde mit dem bestehenden Metro-Server gestartet.
+Die Button-Änderungen werden von Metro geladen und sind kein neu gebündelter
+APK-Stand. Die visuelle Abnahme bleibt offen.

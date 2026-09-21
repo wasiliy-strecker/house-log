@@ -358,6 +358,7 @@ export function Button({
       <Text
         style={{
           fontFamily: 'RobotoMedium',
+          fontWeight: '600',
           fontSize: 16,
           lineHeight: 20,
           color: foreground,
@@ -402,6 +403,7 @@ export function Fab({
       <Text
         style={{
           fontFamily: 'RobotoMedium',
+          fontWeight: '600',
           fontSize: 16,
           lineHeight: 20,
           color: c.onSoft,
