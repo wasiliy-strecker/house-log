@@ -37,6 +37,7 @@ function Routes() {
       <Stack
         screenOptions={{
           contentStyle: { backgroundColor: c.background },
+          // Android duration: 200 ms via resources in with-house-android.
           animation: 'slide_from_right',
           header: ({ options, back, route }) => (
             <View

@@ -214,3 +214,23 @@ Nur TypeScript, Layout und die Zuordnung eines Symbols in der bereits enthaltene
 Material-Schrift ändern sich. Keine nativen Abhängigkeiten, Paketänderungen oder
 neue APK. Die vereinbarte Prüfung beschränkt sich auf Format, Lint und Typecheck.
 Die manuelle Smartphone-Abnahme übernimmt auf ausdrücklichen Wunsch der Nutzer.
+
+## Bildschirmwechsel mit 200 ms
+
+Auf ausdrücklichen Nutzerwunsch verwendet Hausakte ab 21.09.2026 eine Basisdauer
+von 200 ms für Vorwärts- und Zurückwechsel mit `slide_from_right`.
+Die vier zugehörigen Android-Translate-Ressourcen von react-native-screens werden
+app-lokal überschrieben. Richtung und native Ausführung bleiben erhalten.
+Androids systemweite Animations- und Barrierefreiheitseinstellungen werden nicht
+verändert. Deren Skalierung wirkt weiterhin auf die Basisdauer.
+
+Die Dauer steht in `plugins/with-house-android.js`. Das Config-Plugin erzeugt bei
+jedem Prebuild die versionierten Ressourcen unter `android/app/src/main/res`.
+Die Dateien in node_modules bleiben unverändert. Die Android-Ressourcen erfordern
+einen neuen Dev-Build. Eine JavaScript-Daueroption wäre bei diesem Navigator nur
+für bestimmte iOS-Übergänge wirksam und wird daher nicht verwendet.
+
+Der native Build und seine gepackten Ressourcen werden geprüft. Daraus folgt keine
+Garantie über Bildraten auf langsamen Geräten. Die manuelle Bedienprüfung bleibt
+wie vereinbart beim Nutzer. Keine zusätzliche Navigationsbibliothek und keine
+Änderung der Bildschirmfolge oder der gespeicherten Daten.

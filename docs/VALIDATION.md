@@ -244,3 +244,38 @@ Manuelle Abnahme durch den Nutzer, noch offen:
   dabei müssen die technischen Angaben erhalten bleiben.
 - Tätigkeit im Eintragsformular weiterhin frei eingeben und per Vorschlag wählen.
   Änderungen verwerfen und vorhandene Angaben erneut öffnen.
+
+## Kürzere Bildschirmwechsel vom 21.09.2026
+
+Änderung: Die vier nativen Slide-Ressourcen für Vorwärts und Zurück beziehen ihre
+Dauer aus dem app-lokalen Integer `hausakte_screen_transition_duration` mit 200 ms.
+Prüfumfang: Format, Lint einschließlich des Config-Plugins, Typecheck, nativer
+Dev-Build und Kontrolle der tatsächlich in der APK enthaltenen Ressourcen.
+Keine Testsuiten, Smartphone-Automation oder Leistungsmessung beauftragt.
+
+Manuell noch offen: Übersicht → Akte → Eintrag sowie Einstellungen → Datenschutz
+öffnen und mit Zurück-Button beziehungsweise Android-Zurück zurückgehen.
+Die Wechsel sollen kürzer wirken und die bisherige Richtung behalten. Flüssigkeit
+auch auf einem langsameren Smartphone beurteilen. Normale und reduzierte
+Systemanimationen sollen weiterhin respektiert werden.
+
+Ergebnis dieser Runde: Formatprüfung, ESLint einschließlich Config-Plugin,
+Typecheck, `git diff --check` und `npm run build:dev` bestanden.
+AAPT bestätigt die Dev-Kennung `com.appfactory.house_log.dev`, Version 1.0.0 / Code 1,
+Debug-Flag und den Integerwert 200. Alle vier gepackten Slide-Animationen verweisen
+auf diesen Integer. Nur bereits bestehende Abhängigkeits- und Gradle-Warnungen
+im Build. Keine Kotlin-Änderungen und keine zusätzlichen Testsuiten.
+
+Artefakt: `build/releases/dev/Hausakte-Dev-1.0.0-1-navigation-200ms-20260921.apk`.
+Das HONOR-Telefon war bei der Bereitstellung nicht per ADB verbunden. Daher keine
+Installation oder Sichtprüfung auf dem Telefon. Die vorhandene Emulator-Sitzung
+blieb unverändert. Metro läuft weiter auf Port 8083. Die APK benötigt diesen
+Server für den TypeScript-Teil, die Animationsdauer ist nativ in der APK enthalten.
+
+Nach Anschluss des Telefons datenbewahrend installieren. Der Helfer prüft auch die
+vorhandene Installation und Signatur:
+
+```bash
+cd /home/unknown/dev/app_factory/hausakte
+bash scripts/install-dev.sh A5CS024205005243 build/releases/dev/Hausakte-Dev-1.0.0-1-navigation-200ms-20260921.apk
+```
