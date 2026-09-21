@@ -336,7 +336,7 @@ export function Button({
         paddingHorizontal: 20,
         borderRadius: 40,
         borderWidth: secondary ? 1 : 0,
-        borderColor: disabled ? c.ink + '1F' : c.outline,
+        borderColor: disabled ? c.ink + '1F' : danger ? c.danger : c.outline,
         backgroundColor:
           secondary || textOnly
             ? 'transparent'

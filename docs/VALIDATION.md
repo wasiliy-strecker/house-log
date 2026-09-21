@@ -203,3 +203,44 @@ dfc9e4adf64ee5b54f8efeb37bdc64a8e4504c2f6ef1c527160e504302daac8f
 Die Development-APK enthält die geprüften nativen Module und benötigt den
 laufenden Metro-Server. Der aktuelle TypeScript-Stand wird per Fast Refresh
 geladen. Das Artefakt ist kein eigenständig gebündeltes Store-Release.
+
+## Aktenseite und Stammdaten vom 21.09.2026
+
+Diese UI-Runde verwendet die drei vom Nutzer bereitgestellten Smartphone-
+Screenshots als Referenz. Sie sind keine Nachher-Prüfung der neuen Implementierung.
+Auf Wunsch des Nutzers keine umfangreichen Tests und keine automatisierte Bedienung
+von Telefon oder Emulator. Frühere Geräteprüfungen oben gelten für ihren damaligen
+Stand und sind kein Nachweis für diese Änderungen.
+
+Bestanden: `npm run format:check`, `npm run lint` ohne Warnungen und
+`npm run typecheck`. Zusätzlich `git diff --check` ohne Befund.
+Die bestehende Metro-Sitzung auf Port 8083 bleibt für Fast Refresh erhalten.
+Die laufende Hausakte-Dev-Activity auf dem HONOR wurde in den Vordergrund geholt.
+Metro bestätigt die Verbindung des Telefons. Kein Prozessabbruch, kein erzwungenes
+Neuladen und keine APK gebaut oder installiert. Die geänderte Oberfläche wurde
+nicht durchgeklickt oder als visuell abgenommen ausgegeben.
+
+Manuelle Abnahme durch den Nutzer, noch offen:
+
+- Leere Akte mit der Fahrzeugakte vergleichen. Name in Titelleiste, runder
+  Symbolbereich, Kategorie, große Statuszeile, Aktionen untereinander und
+  Leerzustandskarte mit Kamerasymbol prüfen. Auch Hellmodus und große Schrift
+  ohne abgeschnittene Inhalte prüfen.
+- Sowohl die gesamte Karte „Ersten Eintrag erfassen“ als auch den schwebenden
+  Button antippen. Beide müssen dieselbe Quellenwahl öffnen. Zurück führt zur
+  Akte. Nach dem Speichern eines Eintrags zeigt die Kopfkarte die letzte Aktivität
+  und deren Datum. Bestehende Einträge und Protokolle bleiben erreichbar.
+- Kategorie fokussieren, Vorschläge scrollen und auswählen. Mit „hei“ filtern,
+  anschließend eine eigene Kategorie eingeben, Akte speichern und beim nächsten
+  Formular unter den Vorschlägen wiederfinden. Freie Eingabe ohne Vorschlagswahl,
+  Tastatur, Verlassen des Felds und Vorschläge bei großer Schrift prüfen.
+- Eine dreizeilige Adresse eingeben. Speichern und Bearbeiten müssen die
+  Zeilenumbrüche erhalten. Detailansicht und ein neu erzeugtes kompaktes Protokoll
+  auf dieselben Zeilenumbrüche prüfen.
+- Neue Akte mit eingeklappten Anlagendaten öffnen. Bereich aufklappen, nur ein
+  Modell beziehungsweise technische Angaben eingeben, einklappen und speichern.
+  Detailansicht muss auch ein Modell ohne Hersteller anzeigen. Beim erneuten
+  Bearbeiten ist der Bereich geöffnet. Kategorie ändern und erneut speichern,
+  dabei müssen die technischen Angaben erhalten bleiben.
+- Tätigkeit im Eintragsformular weiterhin frei eingeben und per Vorschlag wählen.
+  Änderungen verwerfen und vorhandene Angaben erneut öffnen.

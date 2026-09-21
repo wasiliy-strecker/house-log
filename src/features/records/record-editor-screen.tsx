@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import {
@@ -16,7 +15,8 @@ import {
   useTheme,
 } from '../../core/ui/components';
 import { Icon } from '../../core/ui/icon';
-import { categories, type Reminder } from '../../core/domain/models';
+import { SuggestionField } from '../../core/ui/suggestion-field';
+import type { Reminder } from '../../core/domain/models';
 import { useRecordEditor } from './use-record-editor';
 import { useReminderStatus } from './use-records';
 const intervals: Record<Reminder['interval'], string> = {
@@ -40,7 +40,6 @@ export function RecordEditorScreen() {
   const vm = useRecordEditor(id),
     c = useTheme(),
     status = useReminderStatus();
-  const [custom, setCustom] = useState(false);
   const r = vm.record;
   if (!r)
     return (
@@ -98,26 +97,16 @@ export function RecordEditorScreen() {
       />
       <View style={{ gap: 16 }}>
         <Notice error text={vm.error} />
-        <SelectField
+        <SuggestionField
           label="Kategorie"
-          value={custom ? '__custom' : r.category}
-          options={[...new Set([...categories, r.category].filter(Boolean))]
-            .map((value) => ({ value, label: value }))
-            .concat({ value: '__custom', label: 'Eigene Kategorie' })}
+          placeholder="z. B. Haus oder Heizung"
+          helper="Vorschlag auswählen oder eigene Kategorie eingeben."
+          value={r.category}
+          suggestions={vm.categorySuggestions}
           disabled={vm.busy}
-          onChange={(v) => {
-            setCustom(v === '__custom');
-            if (v !== '__custom') vm.change('category', v);
-          }}
+          showAllOnFocus
+          onChange={(v) => vm.change('category', v)}
         />
-        {custom && (
-          <Field
-            label="Eigene Kategorie"
-            value={r.category}
-            onChangeText={(v) => vm.change('category', v)}
-            editable={!vm.busy}
-          />
-        )}
         <Field
           label="Name *"
           value={r.name}
@@ -129,25 +118,68 @@ export function RecordEditorScreen() {
           value={r.location}
           onChangeText={(v) => vm.change('location', v)}
           editable={!vm.busy}
+          multiline
+          numberOfLines={3}
+          submitBehavior="newline"
+          scrollEnabled={false}
         />
-        <Field
-          label="Hersteller (optional)"
-          value={r.manufacturer}
-          onChangeText={(v) => vm.change('manufacturer', v)}
-          editable={!vm.busy}
-        />
-        <Field
-          label="Modell (optional)"
-          value={r.model}
-          onChangeText={(v) => vm.change('model', v)}
-          editable={!vm.busy}
-        />
-        <Field
-          label="Seriennummer (optional)"
-          value={r.serial}
-          onChangeText={(v) => vm.change('serial', v)}
-          editable={!vm.busy}
-        />
+        <Card>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Anlagendaten (optional)"
+            accessibilityState={{
+              expanded: vm.technicalExpanded,
+              disabled: vm.busy,
+            }}
+            disabled={vm.busy}
+            onPress={vm.toggleTechnical}
+            android_ripple={{ color: c.primary + '22' }}
+            style={{
+              minHeight: 48,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
+            }}
+          >
+            <View style={{ flex: 1, gap: 4 }}>
+              <Body style={{ fontSize: 16, lineHeight: 24 }}>
+                Anlagendaten (optional)
+              </Body>
+              <Body muted>Hersteller, Modell und Seriennummer</Body>
+            </View>
+            <View
+              style={{
+                transform: [
+                  { rotate: vm.technicalExpanded ? '180deg' : '0deg' },
+                ],
+              }}
+            >
+              <Icon name="expand_more" color={c.primary} />
+            </View>
+          </Pressable>
+          {vm.technicalExpanded && (
+            <View style={{ gap: 16, paddingTop: 4 }}>
+              <Field
+                label="Hersteller (optional)"
+                value={r.manufacturer}
+                onChangeText={(v) => vm.change('manufacturer', v)}
+                editable={!vm.busy}
+              />
+              <Field
+                label="Modell (optional)"
+                value={r.model}
+                onChangeText={(v) => vm.change('model', v)}
+                editable={!vm.busy}
+              />
+              <Field
+                label="Seriennummer (optional)"
+                value={r.serial}
+                onChangeText={(v) => vm.change('serial', v)}
+                editable={!vm.busy}
+              />
+            </View>
+          )}
+        </Card>
         <DateField
           label="Einbau / Anschaffung (optional)"
           value={r.installedOn}

@@ -11,7 +11,6 @@ import {
   Page,
   Title,
   Fab,
-  ActionRow,
   IconButton,
   Notice,
   useTheme,
@@ -439,67 +438,100 @@ export function RecordDetailScreen() {
       }
     >
       <Stack.Screen options={{ title: r.name }} />
-      <Card onPress={edit}>
-        <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center' }}>
-          <Icon name={categoryIcon(r.category)} size={40} color={c.primary} />
-          <View style={{ flex: 1, gap: 4 }}>
-            <Heading>{r.name}</Heading>
-            <Body muted>
-              {[r.category, r.location].filter(Boolean).join(' · ')}
-            </Body>
-            <Body strong style={{ fontSize: 22, lineHeight: 28 }}>
-              {entrySummary(vm.entries[0] ?? null)}
-            </Body>
+      <Card onPress={edit} style={{ margin: 4, padding: 17, gap: 0 }}>
+        <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
+          <View
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: c.primary + '1F',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Icon name={categoryIcon(r.category)} color={c.primary} />
           </View>
-          <Icon name="chevron_right" />
-        </View>
-        {!!r.manufacturer && (
-          <Body>{[r.manufacturer, r.model].filter(Boolean).join(' · ')}</Body>
-        )}
-        {!!r.serial && <Body>Seriennummer: {r.serial}</Body>}
-        {!!r.installedOn && (
-          <Body>
-            Einbau / Anschaffung:{' '}
-            {new Date(r.installedOn).toLocaleDateString('de-DE')}
+          <Body
+            strong
+            style={{
+              flex: 1,
+              fontSize: 16,
+              lineHeight: 24,
+              letterSpacing: 0.15,
+            }}
+          >
+            {r.category || 'Akte'}
           </Body>
+          <Icon name="chevron_right" color={c.muted} />
+        </View>
+        <Body
+          style={{
+            marginTop: 14,
+            fontFamily: 'RobotoBlack',
+            fontSize: 28,
+            lineHeight: 36,
+            letterSpacing: 0,
+          }}
+        >
+          {entrySummary(vm.entries[0] ?? null)}
+        </Body>
+        {!!vm.entries[0] && (
+          <Body>Zuletzt am {dateTime(vm.entries[0].occurredAt)}</Body>
         )}
-        {!!r.note && <Body>{r.note}</Body>}
-        <ReminderInfo record={r} status={vm.status} />
+        <View style={{ marginTop: 10 }}>
+          {!!r.location && <Body>Standort / Adresse: {r.location}</Body>}
+          {!!(r.manufacturer || r.model) && (
+            <Body>
+              Hersteller / Modell:{' '}
+              {[r.manufacturer, r.model].filter(Boolean).join(' · ')}
+            </Body>
+          )}
+          {!!r.serial && <Body>Seriennummer: {r.serial}</Body>}
+          {!!r.installedOn && (
+            <Body>
+              Einbau / Anschaffung:{' '}
+              {new Date(r.installedOn).toLocaleDateString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+              })}
+            </Body>
+          )}
+          {!!r.note && <Body>{r.note}</Body>}
+          <ReminderInfo record={r} status={vm.status} />
+        </View>
       </Card>
-      <ActionRow>
-        {[
-          <Button
-            key="edit"
-            secondary
-            icon="edit"
-            title="Bearbeiten"
-            onPress={edit}
-          />,
-          <Button
-            key="delete"
-            secondary
-            danger
-            icon="delete_outline"
-            title="Akte löschen"
-            disabled={vm.busy}
-            onPress={() =>
-              void feedback
-                .confirm(
-                  'Akte löschen?',
-                  'Die Akte, ihre Einträge und gespeicherten Protokolle werden gelöscht. Exportierte Dateien bleiben erhalten.',
-                )
-                .then((ok) => {
-                  if (ok) void vm.remove();
-                })
-            }
-          />,
-        ]}
-      </ActionRow>
+      <View style={{ gap: 12 }}>
+        <Button
+          secondary
+          icon="edit_outlined"
+          title="Akte & Erinnerung bearbeiten"
+          onPress={edit}
+        />
+        <Button
+          secondary
+          danger
+          icon="delete_outline"
+          title="Akte löschen"
+          disabled={vm.busy}
+          onPress={() =>
+            void feedback
+              .confirm(
+                'Akte löschen?',
+                'Die Akte, ihre Einträge und gespeicherten Protokolle werden gelöscht. Exportierte Dateien bleiben erhalten.',
+              )
+              .then((ok) => {
+                if (ok) void vm.remove();
+              })
+          }
+        />
+      </View>
       <Notice error text={vm.error} />
       {vm.total > 0 && (
         <Reports recordId={id} hasAttachments={vm.hasAttachments} />
       )}
-      <View style={{ marginTop: 6, gap: 8 }}>
+      <View style={{ marginTop: vm.total > 0 ? 6 : 18, gap: 8 }}>
         <Heading>Aktenverlauf</Heading>
         {vm.total > 0 && (
           <Body>
@@ -508,21 +540,36 @@ export function RecordDetailScreen() {
               : `${vm.entries.length} von ${vm.total} Einträgen`}
           </Body>
         )}
-      </View>
-      {!vm.total && (
-        <Card>
-          <Body>
-            Noch kein Eintrag. Halte die erste Wartung, Reparatur oder
-            Renovierung fest.
-          </Body>
-          <Button
-            secondary
-            title="Ersten Eintrag erfassen"
-            icon="add"
+        {!vm.total && (
+          <Card
             onPress={capture}
-          />
-        </Card>
-      )}
+            style={{ margin: 4, padding: 23, gap: 0, alignItems: 'center' }}
+          >
+            <Icon name="add_a_photo_outlined" size={44} color={c.primary} />
+            <Body style={{ marginTop: 10, textAlign: 'center' }}>
+              Noch kein Eintrag. Halte Wartungen, Reparaturen und Renovierungen
+              mit Fotos, PDFs oder Notizen fest.
+            </Body>
+            <View
+              style={{
+                marginTop: 14,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 4,
+              }}
+            >
+              <Body
+                strong
+                style={{ color: c.primary, textAlign: 'center', flexShrink: 1 }}
+              >
+                Ersten Eintrag erfassen
+              </Body>
+              <Icon name="chevron_right" color={c.primary} />
+            </View>
+          </Card>
+        )}
+      </View>
       {vm.entries.map((e) => (
         <HistoryTile key={e.id} entry={e} delta={vm.deltas[e.id]} />
       ))}

@@ -181,3 +181,36 @@ bleibt lokal. Unverändert sind Schema, Backup-Kennung, Geldbeträge, Originalan
 und die fachlich sinnvollen Hausfelder. Die PDF-Größenlimits der ursprünglichen
 Implementierung bleiben bestehen. Die neuere mehrteilige Fahrzeug-PDF-Ausgabe
 ist kein Bestandteil dieser UI-Anpassung.
+
+## Aktenseite und Stammdaten vom 21.09.2026
+
+Grundlage sind die drei vom Nutzer genannten Smartphone-Screenshots vom
+21.09.2026 und die aktuelle `meter_detail_screen.dart` der Fahrzeugakte.
+Die Aktenseite übernimmt die Kopfkarte mit Kategorie im runden Symbolbereich,
+großer letzter Aktivität beziehungsweise „Noch kein Eintrag“ und Stammdaten darunter.
+Der Aktenname steht in der Titelleiste. Bearbeiten und Löschen stehen untereinander.
+Kartenränder, Innenabstände, Schriftgrößen und der Leerzustand mit Kamerasymbol,
+zentriertem Text und Pfeil orientieren sich direkt am Flutter-Code. Die gesamte
+Leerzustandskarte und der schwebende Button öffnen dieselbe Quellenwahl.
+Hausbegriffe und optionale Hausdaten ersetzen die Fahrzeugangaben.
+
+Die Kategorie verwendet dieselbe app-lokale Vorschlagskomponente wie Aktivitäten.
+Bei Fokus erscheinen alle Standardkategorien und Kategorien vorhandener Akten.
+Eingabe filtert nach Teilzeichenfolgen unabhängig von Großschreibung. Eigene Werte
+benötigen keine Auswahlbestätigung. Standardkategorien stehen zuerst, weitere
+Kategorien alphabetisch und ohne doppelte Schreibweisen. Die Vorgabe für eine neue
+Akte bleibt „Haus“. Kategorien werden aus vorhandenen Akten gelesen, es gibt keine
+zusätzliche Kategoriehistorie nach dem Löschen dieser Akten.
+
+Standort / Adresse ist ein mehrzeiliges Feld mit drei sichtbaren Zeilen und einer
+Eingabetaste für Zeilenumbrüche. Die vorhandene String-Speicherung, Detailanzeige
+und PDF-Absatzverarbeitung erhalten Zeilenumbrüche ohne Schemamigration.
+Hersteller, Modell und Seriennummer stehen im Bereich „Anlagendaten (optional)“.
+Neue Akten beginnen eingeklappt. Vorhandene technische Angaben öffnen den Bereich
+beim Laden. Einklappen und Kategorieänderungen verändern die Werte nicht.
+Einbau / Anschaffung bleibt außerhalb dieses Bereichs.
+
+Nur TypeScript, Layout und die Zuordnung eines Symbols in der bereits enthaltenen
+Material-Schrift ändern sich. Keine nativen Abhängigkeiten, Paketänderungen oder
+neue APK. Die vereinbarte Prüfung beschränkt sich auf Format, Lint und Typecheck.
+Die manuelle Smartphone-Abnahme übernimmt auf ausdrücklichen Wunsch der Nutzer.

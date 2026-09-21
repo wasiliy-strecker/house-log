@@ -4,6 +4,20 @@ import type {
   Reminder,
   EntryDraft,
 } from '../../core/domain/models';
+import { categories } from '../../core/domain/models';
+
+export function categorySuggestions(records: HouseRecord[]): string[] {
+  const unique = new Map<string, string>();
+  const saved = records
+    .map((record) => record.category.trim())
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b, 'de-DE'));
+  for (const category of [...categories, ...saved]) {
+    const key = category.toLocaleLowerCase('de-DE');
+    if (!unique.has(key)) unique.set(key, category);
+  }
+  return [...unique.values()];
+}
 export type DashboardItem = {
   record: HouseRecord;
   latest: HouseEntry | null;

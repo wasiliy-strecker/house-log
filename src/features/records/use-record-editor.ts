@@ -7,6 +7,7 @@ import { useTask } from '../../core/ui/use-task';
 import { errorText } from '../../core/ui/components';
 import { useFeedback } from '../../core/ui/feedback';
 import { useLeaveGuard } from '../../core/ui/use-leave-guard';
+import { categorySuggestions } from './presentation-model';
 export function useRecordEditor(id?: string) {
   const { house, refresh, native } = useServices();
   const feedback = useFeedback();
@@ -30,25 +31,31 @@ export function useRecordEditor(id?: string) {
   });
   const [initial, setInitial] = useState(() => JSON.stringify(record));
   const [initialReady, setReady] = useState(!id);
+  const [suggestions, setSuggestions] = useState(() => categorySuggestions([]));
+  const [technicalExpanded, setTechnicalExpanded] = useState(false);
   const task = useTask();
   const { setError } = task;
   useEffect(() => {
     let active = true;
-    if (id)
-      house.repository
-        .records()
-        .then((records) => {
+    house.repository
+      .records()
+      .then((records) => {
+        if (!active) return;
+        setSuggestions(categorySuggestions(records));
+        if (id) {
           const found = records.find((r) => r.id === id);
           if (!found) throw new Error('Die Akte wurde nicht gefunden.');
-          if (active) {
-            setRecord(found);
-            setInitial(JSON.stringify(found));
-            setReady(true);
-          }
-        })
-        .catch((e) => {
-          if (active) setError(errorText(e));
-        });
+          setRecord(found);
+          setInitial(JSON.stringify(found));
+          setReady(true);
+          setTechnicalExpanded(
+            !!(found.manufacturer || found.model || found.serial),
+          );
+        }
+      })
+      .catch((e) => {
+        if (active) setError(errorText(e));
+      });
     return () => {
       active = false;
     };
@@ -67,6 +74,9 @@ export function useRecordEditor(id?: string) {
     record,
     dirty,
     change,
+    categorySuggestions: suggestions,
+    technicalExpanded,
+    toggleTechnical: () => setTechnicalExpanded((expanded) => !expanded),
     ...task,
     reminder: (value: Partial<Reminder>) => {
       if (record?.reminder)
