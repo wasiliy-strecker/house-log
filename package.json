@@ -13,7 +13,9 @@
     "lint": "eslint src tests app.config.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm test"
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test",
+    "build:preview": "bash scripts/build-preview.sh",
+    "install:preview": "bash scripts/install-preview.sh"
   },
   "dependencies": {
     "@noble/ciphers": "2.4.0",
@@ -33,6 +35,7 @@
     "expo-linking": "~57.0.10",
     "expo-router": "~57.0.22",
     "expo-sharing": "~57.0.21",
+    "expo-splash-screen": "~57.0.9",
     "expo-sqlite": "~57.0.3",
     "expo-status-bar": "~57.0.1",
     "expo-system-ui": "~57.0.4",

@@ -46,7 +46,7 @@ npm ci
 npm run check
 export ANDROID_HOME="$HOME/.local/android-sdk"
 export JAVA_HOME="$HOME/.local/jdk-21"
-npm run build:dev
+npm run build:preview
 ```
 
 Die Pfade sind Beispiele für diesen Arbeitsplatz. Auf anderen Rechnern die
@@ -57,7 +57,39 @@ lokale Konfiguration und Build-Ausgaben werden nicht eingecheckt.
 
 ## Android starten
 
+Die aktuelle Smartphone-Testversion ist eigenständig. Sie startet mit einer
+einheitlichen Fläche in der Icon-Hintergrundfarbe `#315E80` und zeigt danach
+die geladene App. Es gibt keinen zusätzlichen „Hausakte“-Ladebildschirm.
+Schriften, lokale Initialisierung, Daten der ersten Route und deren Layout
+geben die Startfläche gemeinsam frei. Fehler bleiben mit Wiederholen sichtbar.
+
 ```bash
+npm run build:preview
+npm run install:preview -- DEVICE
+```
+
+Die APK liegt unter `android/app/build/outputs/apk/dev/release/app-dev-release.apk`.
+Ein eigener APK-Pfad kann als zweites Argument an `install:preview` übergeben
+werden. Der Helfer prüft Dev-Paket, Version, Release-Eigenschaft, eingebettetes
+JavaScript, bisherige Installation und identische Signatur. Danach verwendet er
+`adb install -r -t -g --no-streaming` und startet die App über ihre normale Activity.
+Akten, Anhänge und Entwürfe bleiben im selben privaten App-Verzeichnis.
+
+Dieser `devRelease` läuft ohne Metro und ohne Entwicklungsmenü. Auch Änderungen
+an TypeScript und UI benötigen für diese installierte Version ein APK-Update.
+Signiert wird ausschließlich mit dem vorhandenen app-lokalen Dev-Schlüssel.
+Die Store-Variante bleibt unsigniert. Keine Veröffentlichung.
+
+### Optionaler Live-Build mit Fast Refresh
+
+Für Live-Entwicklung bleibt `devDebug` verfügbar. Er verwendet dieselbe Dev-
+Installation, ersetzt also bei Installation die eigenständige Testversion.
+Beide können nicht gleichzeitig unter derselben Paketkennung installiert sein.
+Der Wechsel ist ausdrücklich über den jeweiligen Build- und Installationshelfer
+möglich. Nicht zur Beurteilung des endgültigen Kaltstarts verwenden.
+
+```bash
+npm run build:dev
 npm start
 ```
 

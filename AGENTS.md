@@ -7,6 +7,13 @@ Keine Runtime-Abhängigkeit zu Nachbar-Apps. Änderungen bleiben in diesem Repo.
 ## Entwicklung
 
 `npm ci`, `npm run check`, `npm run build:dev`.
+Die Smartphone-Testversion ist auf Nutzerwunsch ein eigenständiger `devRelease`
+mit eingebettetem JavaScript. `npm run build:preview`, danach
+`npm run install:preview -- DEVICE [APK]`. Gleiche Dev-Kennung und Dev-Signatur,
+kein Metro und kein Fast Refresh. Änderungen erfordern hier ein APK-Update.
+Nicht ungefragt auf den Live-Build zurückwechseln.
+
+Der optionale Live-Build bleibt für Fast Refresh verfügbar:
 `npm start` verwendet Port 8083. Bestehende Testsitzungen erhalten.
 Für TypeScript und UI Fast Refresh verwenden. Native Änderungen erfordern
 einen neuen Dev-Build. `android/` ist versioniert. Änderungen an generierten
@@ -27,6 +34,10 @@ Die technischen Google-Metriken des optionalen Scanners transparent erklären.
 
 Vor Commit `npm run check`, native JVM-Tests bei Kotlin-Änderungen und den
 zusammenhängenden Integrationstest ausführen. Native Gerätegrenzen dokumentieren.
+Für die aktuellen UI-Iterationen hat der Nutzer ausdrücklich auf umfangreiche
+Tests verzichtet und übernimmt die visuelle Abnahme. Hier Format, Lint und
+Typecheck sowie konkrete manuelle Prüfschritte verwenden. Erforderliche native
+Builds und eine kurze Startkontrolle bleiben erlaubt.
 Changelog unter Workspace `CODEX/changelog/` und Kopie unter `docs/changelog/`
 ablegen, da der Workspace kein Git-Repository ist. Nur dieses Repo committen.
 

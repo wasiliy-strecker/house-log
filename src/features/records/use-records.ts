@@ -1,6 +1,8 @@
 import { useCallback, useState } from 'react';
 import { AppState } from 'react-native';
 import { useFocusEffect, router } from 'expo-router';
+import { useIsFocused } from 'expo-router/react-navigation';
+import { useStartupHold } from '../../core/startup/startup';
 import { useServices } from '../../core/composition';
 import type {
   EntryDraft,
@@ -179,6 +181,9 @@ export function useReports(
   entryId: string | null,
   hasAttachments: boolean,
 ) {
+  const focused = useIsFocused();
+  const [loading, setLoading] = useState(true);
+  useStartupHold(focused && loading);
   const { house, revision, refresh } = useServices();
   const feedback = useFeedback();
   const task = useTask();
@@ -188,6 +193,7 @@ export function useReports(
   useFocusEffect(
     useCallback(() => {
       let active = true;
+      setLoading(true);
       house.repository
         .reports(recordId)
         .then((rows) => {
@@ -206,6 +212,9 @@ export function useReports(
         })
         .catch((e) => {
           if (active) setError(errorText(e));
+        })
+        .finally(() => {
+          if (active) setLoading(false);
         });
       return () => {
         active = false;

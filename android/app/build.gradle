@@ -203,3 +203,6 @@ androidComponents {
         }
     }
 }
+
+// Hausakte standalone Dev preview. Store releases remain unsigned.
+android.productFlavors.dev.signingConfig = android.signingConfigs.debug

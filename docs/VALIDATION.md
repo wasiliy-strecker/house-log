@@ -328,3 +328,59 @@ Schüttel- und Drei-Finger-Prüfung. Keine fremde Emulator-Sitzung verändert.
 
 Dev-APK: `build/releases/dev/Hausakte-Dev-1.0.0-1-no-dev-menu-20260921.apk`.
 Die Dev-App benötigt weiterhin Metro. Kein Store-Build oder Push.
+
+## Einheitlicher Start und eigenständige Testversion vom 22.09.2026
+
+Vereinbarter Umfang: Format, Lint, Typecheck, notwendiger nativer Release-Build
+für die Dev-Kennung und eine kurze Startkontrolle. Keine umfangreiche Testsuite,
+keine automatisierten Medien-, Backup- oder Scannerabläufe. Die visuelle Abnahme
+übernimmt der Nutzer.
+
+Manuelle Abnahme:
+
+1. Die eigenständige Hausakte Dev über ihr Icon kalt starten. Bis zur fertigen
+   Übersicht nur die Fläche `#315E80`, kein Logo, „Hausakte“-Loader oder Wechsel
+   über weiße und graue Zwischenflächen. Die allgemeine Android-Launcher-Animation
+   ist kein eigener App-Bildschirm.
+2. In Hell- und Dunkelmodus wiederholen. Der Start bleibt blau, anschließend gilt
+   das gewählte Systemthema. Nach Rückkehr aus dem Hintergrund kein neuer Loader.
+3. Start ohne USB und Entwicklungsserver. Vorhandene Akten, Einträge und Anhänge
+   müssen sichtbar bleiben. Direktes Öffnen einer Aktenerinnerung muss die
+   zugehörige Akte anzeigen.
+4. Bei einem lokal nachgestellten Initialisierungsfehler muss die Fehleransicht
+   mit „Erneut versuchen“ erscheinen. Keinen Fehler durch Löschen oder Manipulieren
+   von Nutzerdaten auf dem Telefon provozieren.
+
+Die nativen Startressourcen sind in beiden Farbmodi gleich. Das installierte
+Expo-Modul 57.0.9 ist im SDK-57-Kompatibilitätskatalog enthalten. Der zusätzliche
+Dev-Launcher wird in der eigenständigen Version nicht verwendet. Der bisherige
+Live-Build bleibt optional, wird aber nicht als Nachweis für den Preview-Start
+behandelt.
+
+Ergebnis dieser Runde: Formatprüfung, Typecheck, ESLint einschließlich Config-
+Plugin, Shell-Syntaxprüfung der Build-/Installationshelfer und `git diff --check`
+bestanden. `npm run build:preview` erfolgreich in 4 min 19 s. AAPT bestätigt
+Dev-Kennung, Version 1.0.0 / Code 1, fehlendes Debug-Flag, `#315E80` und das
+transparente Splash-Drawable in der gepackten Startkonfiguration. JavaScript und
+Assets sind eingebettet. Der native Build meldet Abhängigkeits- und Gradle-
+Deprecation-Warnungen, aber keinen Buildfehler.
+
+Auf dem HONOR mit Android 16 wurde vor Installation die vorhandene Debug-Version,
+ihr Installer und die identische Signatur geprüft. Datenbewahrendes Update mit
+`adb install -r -t -g --no-streaming` erfolgreich. UID 10515 bleibt gleich,
+Berechtigungen bleiben erhalten. Keine Deinstallation oder Datenlöschung.
+
+Die ausschließlich für Hausakte eingerichtete ADB-Weiterleitung auf Port 8083
+wurde auf diesem Telefon entfernt. Ein anschließender Kaltstart über die normale
+Launcher-Activity erzeugt MainActivity und ReactSurfaceView. Das Prozesslog meldet
+„Running main“ ohne React-Native-JavaScript-Fehler oder fatalen Startfehler.
+Metro und die fremde Emulator-Sitzung wurden nicht beendet oder verändert.
+
+Das Telefon blieb gesperrt. Deshalb sind der tatsächlich sichtbare Übergang zur
+fertigen Übersicht, deren Dateninhalt, Hell-/Dunkelmodus, Erinnerungs-Direkteinstieg
+und Fehler/Wiederholen noch nicht visuell geprüft. Die technische Startkontrolle
+ist kein Ersatz für diese manuelle Abnahme. Keine Scanner- oder vollständige
+Fachablaufprüfung in dieser Runde.
+
+Installierte APK:
+`build/releases/dev/Hausakte-Dev-1.0.0-1-preview-startup-20260922-0551.apk`.

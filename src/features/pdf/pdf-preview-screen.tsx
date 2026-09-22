@@ -121,6 +121,7 @@ export function PdfPreviewScreen() {
   const openZoom = useCallback((uri: string) => setZoom(uri), []);
   return (
     <Page
+      ready={!vm.loading}
       scroll={false}
       bottom={
         pdf?.kind === 'report' ? (

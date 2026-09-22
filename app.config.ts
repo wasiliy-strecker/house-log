@@ -7,6 +7,7 @@ const config: ExpoConfig = {
   scheme: 'hausakte',
   orientation: 'default',
   userInterfaceStyle: 'automatic',
+  backgroundColor: '#315E80',
   platforms: ['android'],
   icon: './assets/icon.png',
   android: {
@@ -34,11 +35,20 @@ const config: ExpoConfig = {
     'expo-router',
     'expo-sqlite',
     'expo-dev-client',
+    // Android mods unwind in reverse order. Our final theme overrides must
+    // run after expo-splash-screen has generated Theme.App.SplashScreen.
+    './plugins/with-house-android',
+    [
+      'expo-splash-screen',
+      {
+        backgroundColor: '#315E80',
+        dark: { backgroundColor: '#315E80' },
+      },
+    ],
     'expo-font',
     'expo-asset',
     'expo-sharing',
     ['expo-image-picker', { microphonePermission: false }],
-    './plugins/with-house-android',
   ],
 };
 export default config;

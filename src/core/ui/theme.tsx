@@ -1,6 +1,7 @@
-import { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useContext, useState, type ReactNode } from 'react';
 import { useColorScheme } from 'react-native';
 import { useFonts } from 'expo-font';
+import { StartupError, StartupPending } from '../startup/startup';
 export const light = {
   background: '#F1F4F7',
   card: '#FAFCFE',
@@ -37,6 +38,20 @@ export const dark: typeof light = {
 };
 const ThemeContext = createContext(light);
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [attempt, setAttempt] = useState(0);
+  return (
+    <FontThemeProvider key={attempt} retry={() => setAttempt((n) => n + 1)}>
+      {children}
+    </FontThemeProvider>
+  );
+}
+function FontThemeProvider({
+  children,
+  retry,
+}: {
+  children: ReactNode;
+  retry(): void;
+}) {
   const scheme = useColorScheme();
   const [loaded, error] = useFonts({
     Roboto: require('../../../assets/ui/Roboto-Regular.ttf'),
@@ -45,7 +60,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     RobotoBlack: require('../../../assets/ui/Roboto-Black.ttf'),
     MaterialIcons: require('../../../assets/ui/MaterialIcons-Regular.otf'),
   });
-  if (!loaded && !error) return null;
+  if (error)
+    return (
+      <StartupError
+        message="Die Schriftarten konnten nicht geladen werden."
+        retry={retry}
+      />
+    );
+  if (!loaded) return <StartupPending />;
   return (
     <ThemeContext.Provider value={scheme === 'dark' ? dark : light}>
       {children}

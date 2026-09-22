@@ -21,14 +21,14 @@ export function EntryDetailScreen() {
   const e = vm.entry;
   if (!e)
     return (
-      <Page>
+      <Page ready={!vm.loading}>
         <Notice error text={vm.error} />
         {vm.loading ? <Busy /> : <Body>Eintrag nicht gefunden.</Body>}
       </Page>
     );
   const photos = e.attachments.filter((a) => a.kind === 'photo');
   return (
-    <Page>
+    <Page ready={!vm.loading}>
       <Stack.Screen options={{ title: 'Eintrag' }} />
       {!!photos.length && (
         <View style={{ gap: 8 }}>

@@ -31,7 +31,7 @@ export function EntryEditorScreen() {
   const draft = vm.draft;
   if (!draft)
     return (
-      <Page>
+      <Page ready={!!vm.error}>
         <Notice error text={vm.error} />
         {!vm.error && <Busy />}
       </Page>

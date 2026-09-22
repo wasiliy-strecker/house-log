@@ -4,11 +4,46 @@ const {
   withProjectBuildGradle,
   withDangerousMod,
   withMainActivity,
+  withAndroidStyles,
 } = require('expo/config-plugins');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
 module.exports = function withHouseAndroid(config) {
+  config = withAndroidStyles(config, (mod) => {
+    const styles = mod.modResults.resources.style;
+    const setItem = (style, name, value) => {
+      style.item = (style.item ?? []).filter((item) => item.$.name !== name);
+      style.item.push({ $: { name }, _: value });
+    };
+    const splash = styles.find(
+      (style) => style.$.name === 'Theme.App.SplashScreen',
+    );
+    const app = styles.find((style) => style.$.name === 'AppTheme');
+    if (!splash || !app)
+      throw new Error('Hausakte: Android start themes missing.');
+    // Explicitly suppress Android's default launcher icon, including API 31+.
+    setItem(
+      splash,
+      'windowSplashScreenAnimatedIcon',
+      '@drawable/hausakte_splash_empty',
+    );
+    setItem(
+      splash,
+      'android:windowBackground',
+      '@color/splashscreen_background',
+    );
+    setItem(splash, 'android:windowLightStatusBar', 'false');
+    setItem(splash, 'android:windowLightNavigationBar', 'false');
+    setItem(splash, 'android:statusBarColor', '@color/splashscreen_background');
+    setItem(
+      splash,
+      'android:navigationBarColor',
+      '@color/splashscreen_background',
+    );
+    setItem(app, 'android:windowBackground', '@color/splashscreen_background');
+    return mod;
+  });
   config = withMainActivity(config, (mod) => {
     let source = mod.modResults.contents;
     const marker = '// Hausakte: no developer menu in the user-facing Dev app.';
@@ -81,6 +116,16 @@ ${startup}`,
       );
       await fs.mkdir(path.join(res, 'anim'), { recursive: true });
       await fs.mkdir(path.join(res, 'values'), { recursive: true });
+      await fs.mkdir(path.join(res, 'drawable'), { recursive: true });
+      await fs.writeFile(
+        path.join(res, 'drawable/hausakte_splash_empty.xml'),
+        `<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@android:color/transparent" />
+    <size android:width="1dp" android:height="1dp" />
+</shape>
+`,
+      );
       await fs.writeFile(
         path.join(res, 'values/hausakte_navigation.xml'),
         `<?xml version="1.0" encoding="utf-8"?>
@@ -154,8 +199,14 @@ androidComponents {
     }
 }
 `;
-      mod.modResults.contents = source;
     }
+    if (!source.includes('// Hausakte standalone Dev preview')) {
+      source += `
+// Hausakte standalone Dev preview. Store releases remain unsigned.
+android.productFlavors.dev.signingConfig = android.signingConfigs.debug
+`;
+    }
+    mod.modResults.contents = source;
     return mod;
   });
   return withAndroidManifest(config, (mod) => {

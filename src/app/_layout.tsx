@@ -15,7 +15,9 @@ import { ServicesProvider } from '../core/composition';
 import { ThemeProvider, useTheme } from '../core/ui/theme';
 import { FeedbackProvider } from '../core/ui/feedback';
 import { IconButton } from '../core/ui/components';
+import { StartupProvider, useStartup } from '../core/startup/startup';
 function Routes() {
+  const { pending } = useStartup();
   const c = useTheme(),
     safe = useSafeAreaInsets();
   const theme = c.dark ? DarkTheme : DefaultTheme;
@@ -33,7 +35,7 @@ function Routes() {
         },
       }}
     >
-      <StatusBar style={c.dark ? 'light' : 'dark'} />
+      <StatusBar style={pending || c.dark ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
           contentStyle: { backgroundColor: c.background },
@@ -111,13 +113,15 @@ export default function Layout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <ThemeProvider>
-          <FeedbackProvider>
-            <ServicesProvider>
-              <Routes />
-            </ServicesProvider>
-          </FeedbackProvider>
-        </ThemeProvider>
+        <StartupProvider>
+          <ThemeProvider>
+            <FeedbackProvider>
+              <ServicesProvider>
+                <Routes />
+              </ServicesProvider>
+            </FeedbackProvider>
+          </ThemeProvider>
+        </StartupProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

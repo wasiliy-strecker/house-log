@@ -43,7 +43,7 @@ export function RecordEditorScreen() {
   const r = vm.record;
   if (!r)
     return (
-      <Page>
+      <Page ready={!!vm.error}>
         <Notice error text={vm.error} />
         {!vm.error && <Busy />}
       </Page>

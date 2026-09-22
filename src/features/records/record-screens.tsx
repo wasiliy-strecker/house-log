@@ -86,7 +86,10 @@ export function RecordsScreen() {
     feedback = useFeedback();
   const create = () => router.push('/record/edit');
   return (
-    <Page fab={<Fab title="Akte anlegen" onPress={create} />}>
+    <Page
+      ready={!vm.loading}
+      fab={<Fab title="Akte anlegen" onPress={create} />}
+    >
       {vm.loading ? (
         <Busy label="Akten werden geladen …" />
       ) : vm.error ? (
@@ -422,13 +425,14 @@ export function RecordDetailScreen() {
     router.push({ pathname: '/entry/edit', params: { recordId: id } });
   if (!r)
     return (
-      <Page>
+      <Page ready={!vm.loading}>
         <Notice error text={vm.error} />
         {vm.loading ? <Busy /> : <Body>Akte nicht gefunden.</Body>}
       </Page>
     );
   return (
     <Page
+      ready={!vm.loading}
       fab={
         <Fab
           title="Eintrag erfassen"
@@ -592,6 +596,7 @@ export function RecordHistoryScreen() {
     c = useTheme();
   return (
     <Page
+      ready={!vm.loading}
       top={
         <View
           style={{

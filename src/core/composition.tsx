@@ -1,4 +1,4 @@
-import { useTheme } from './ui/theme';
+import { StartupError, StartupPending } from './startup/startup';
 import { PdfViewerService } from './pdf/viewer-service';
 import { androidPasswordKey } from './backup/password-key';
 import {
@@ -8,7 +8,6 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { ActivityIndicator, Text, View, Pressable } from 'react-native';
 import * as SQLite from 'expo-sqlite';
 import * as Crypto from 'expo-crypto';
 import { Asset } from 'expo-asset';
@@ -107,7 +106,6 @@ async function createServices(): Promise<Services> {
   };
 }
 export function ServicesProvider({ children }: { children: ReactNode }) {
-  const colors = useTheme();
   const [services, setServices] = useState<Services>();
   const [error, setError] = useState('');
   const [revision, setRevision] = useState(0);
@@ -124,43 +122,16 @@ export function ServicesProvider({ children }: { children: ReactNode }) {
     });
   }, [attempt]);
   if (!services)
-    return (
-      <View
-        style={{
-          flex: 1,
-          padding: 32,
-          justifyContent: 'center',
-          backgroundColor: colors.background,
-          gap: 16,
+    return error ? (
+      <StartupError
+        message={error}
+        retry={() => {
+          setError('');
+          setAttempt((n) => n + 1);
         }}
-      >
-        <Text
-          style={{ fontSize: 28, color: colors.primary, fontWeight: '700' }}
-        >
-          Hausakte
-        </Text>
-        {error ? (
-          <>
-            <Text accessibilityRole="alert" style={{ color: colors.ink }}>
-              {error}
-            </Text>
-            <Pressable
-              onPress={() => {
-                setError('');
-                setAttempt((n) => n + 1);
-              }}
-              style={{ minHeight: 48, padding: 14 }}
-            >
-              <Text style={{ color: colors.primary }}>Erneut versuchen</Text>
-            </Pressable>
-          </>
-        ) : (
-          <ActivityIndicator
-            color={colors.primary}
-            accessibilityLabel="Lokale Daten werden geladen"
-          />
-        )}
-      </View>
+      />
+    ) : (
+      <StartupPending />
     );
   return (
     <Context.Provider

@@ -271,3 +271,41 @@ Entfernt ist deren Menüoberfläche im App-Betrieb. node_modules bleibt unverän
 Das Config-Plugin erhält die app-lokale Android-Anpassung bei Prebuild. Im Release
 wird diese Debug-Lifecycle-Anpassung nicht ausgeführt. Native Änderung erfordert
 neuen Dev-Build und ein datenbewahrendes APK-Update.
+
+## Einheitlicher Start und eigenständige Testversion vom 22.09.2026
+
+Die letzten Smartphone-Bilder zeigten dunkle und weiße Startflächen sowie eine
+Logoanzeige. Zusätzlich erzeugten Schriftladen, Service-Initialisierung und
+Übersicht eigene Ladezustände. Die native Startfläche ist nun durchgehend
+`#315E80`, passend zum Hausakte-Icon, sowohl im Hell- als auch im Dunkelmodus.
+Ein transparentes Drawable unterdrückt das zusätzliche Android-Splash-Icon.
+Das Launcher-Icon bleibt unverändert. Es gibt keine Mindestanzeigedauer.
+
+`expo-splash-screen` 57.0.9 passt zum vorhandenen Expo SDK 57. Sein automatisches
+Ausblenden wird vor dem React-Rendern verhindert. `StartupProvider` und die
+Bereitschaftsmeldung der fokussierten `Page` warten auf Schriften, vorhandene
+Initialisierung und Daten der ersten Route sowie deren Layout. Die verschachtelte
+Protokollliste hält den Start bei direktem Einstieg ebenfalls zurück. Fehler
+geben die Startfläche frei, damit ihre Meldung sichtbar bleibt. Initialisierungs-
+und Schriftfehler erlauben Wiederholen. Normale spätere Navigation öffnet keinen
+neuen Splash. Unbekannte Links erhalten eine Seite mit Rückweg zur Übersicht.
+
+Native Styles und die transparente Ressource werden im Hausakte-Plugin erzeugt.
+Das Plugin steht vor expo-splash-screen, weil Android-Mods in umgekehrter Reihenfolge
+abgewickelt werden. So bleiben die finalen Style-Anpassungen nach Prebuild erhalten.
+Keine Änderungen an SQLite-Schema, Dateireferenzen oder Sicherungsformat.
+
+Der Nutzer hat für das Smartphone ausdrücklich eine eigenständige Testversion
+gewählt. `devRelease` enthält JavaScript und lokale Ressourcen, verwendet weiterhin
+`com.appfactory.house_log.dev` und den vorhandenen app-lokalen Dev-Schlüssel.
+Die Release-Implementierungen von Expo benötigen weder Metro noch Dev-Launcher.
+Der Installationshelfer prüft Release-Eigenschaft und eingebettetes JavaScript
+zusätzlich zu Paket, vorhandener Installation und Signatur. Der Start erfolgt
+über die normale Launcher-Activity. Store bleibt separat und unsigniert.
+
+`devDebug` bleibt als optionale Live-Entwicklung erhalten. Beide Build-Arten teilen
+absichtlich dieselbe Dev-Installation und deren Daten. UI-Änderungen der aktuell
+installierten Preview benötigen jeweils einen neuen Build und ein APK-Update.
+Keine automatische Rückkehr zum Live-Build. Die Expo-Startbesonderheiten in einer
+Development-APK sind kein Nachweis für den Start der eigenständigen Version.
+Siehe [Expo-Startbildschirm-Dokumentation](https://docs.expo.dev/develop/user-interface/splash-screen-and-app-icon/).

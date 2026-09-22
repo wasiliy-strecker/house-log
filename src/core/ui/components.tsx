@@ -22,6 +22,8 @@ import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { light, useTheme } from './theme';
 import { Icon, type IconName } from './icon';
 import { useFeedback, type MenuAnchor } from './feedback';
+import { useIsFocused } from 'expo-router/react-navigation';
+import { useStartupLayout } from '../startup/startup';
 export { useTheme } from './theme';
 export const colors = light;
 export const styles = StyleSheet.create({
@@ -46,6 +48,7 @@ export function Page({
   bottom,
   top,
   scroll = true,
+  ready = true,
 }: {
   children: ReactNode;
   nested?: boolean;
@@ -53,9 +56,13 @@ export function Page({
   bottom?: ReactNode;
   top?: ReactNode;
   scroll?: boolean;
+  /** Initial route data has settled. Later navigation never reopens the splash. */
+  ready?: boolean;
 }) {
+  const focused = useIsFocused();
   const c = useTheme(),
     safe = useSafeAreaInsets();
+  const onStartupLayout = useStartupLayout(ready && focused, c.background);
   const { fontScale } = useWindowDimensions();
   const Component = ScrollView;
   const ref = useRef<ScrollView>(null),
@@ -66,6 +73,7 @@ export function Page({
   return (
     <ScrollContext.Provider value={host}>
       <KeyboardAvoidingView
+        onLayout={onStartupLayout}
         style={{ flex: 1, backgroundColor: c.background }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
