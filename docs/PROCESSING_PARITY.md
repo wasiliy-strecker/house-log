@@ -309,3 +309,29 @@ installierten Preview benötigen jeweils einen neuen Build und ein APK-Update.
 Keine automatische Rückkehr zum Live-Build. Die Expo-Startbesonderheiten in einer
 Development-APK sind kein Nachweis für den Start der eigenständigen Version.
 Siehe [Expo-Startbildschirm-Dokumentation](https://docs.expo.dev/develop/user-interface/splash-screen-and-app-icon/).
+
+## Herunterziehen der PDF-Auswahl vom 26.09.2026
+
+Der Smartphone-Screenshot von 22:38 zeigte „PDF-Inhalt wählen“. In der gemeinsamen
+Auswahl war der Griff bisher nur sichtbar. Die React-Native-Modalfläche hatte
+keinen Drag-Handler. Die Fahrzeugakte verwendet hier ein schließbares
+`showModalBottomSheet`.
+
+Die unteren Auswahlflächen im FeedbackProvider lassen sich jetzt am Kopfbereich
+und am oberen Anfang der Auswahlliste nach unten ziehen. Bewegung und Animation
+laufen über die vorhandenen Gesture-Handler-/Reanimated-Bibliotheken auf dem
+UI-Thread. Der Android-Modal besitzt dafür einen eigenen GestureHandlerRootView.
+Die Gestaltung und Beschriftung bleiben erhalten. Dialoge in der Mitte und
+verankerte Menüs erhalten keine Schließgeste.
+
+Nach einem Zug über ein Viertel der Höhe, höchstens 120 Layoutpunkte, oder einem
+schnellen Abwärtswischen schließt die Auswahl mit demselben Abbruchergebnis wie
+Android-Zurück. Es wird keine PDF-Erstellung ausgelöst. Kurze und abgebrochene
+Ziehgesten federn zurück. Aufwärtsgesten bleiben bei der Liste. Ist eine längere
+Liste bereits gescrollt, wird zunächst zur Oberkante gescrollt. Eine neue
+Abwärtsgeste kann danach die Auswahl schließen. Der Kopfbereich bleibt unabhängig
+von der Listenposition ziehbar. Tippen, Tippen außerhalb und Android-Zurück bleiben
+verfügbar. Keine neue Abhängigkeit oder Änderung von Geschäftsdaten.
+
+Die installierte eigenständige Testversion benötigt für diese TypeScript-Änderung
+wie vereinbart ein neues Preview-APK mit eingebettetem JavaScript.

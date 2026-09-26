@@ -384,3 +384,36 @@ Fachablaufprüfung in dieser Runde.
 
 Installierte APK:
 `build/releases/dev/Hausakte-Dev-1.0.0-1-preview-startup-20260922-0551.apk`.
+
+## Schließen der unteren PDF-Auswahl vom 26.09.2026
+
+Prüfumfang wie gewünscht ohne umfangreiche Testsuiten: Format, Typecheck, Lint,
+Diff-Prüfung und erforderlicher Preview-Build. Manuelle Abnahme:
+
+1. In einer vorhandenen Akte „Hausprotokoll als PDF erstellen“ öffnen. Den Griff
+   oder Titel nach unten ziehen. Die Auswahl muss folgen und schließen, ohne ein
+   Protokoll zu erzeugen. Danach erneut öffnen.
+2. Nur kurz und langsam ziehen und loslassen. Die Auswahl muss zurückgleiten.
+   Mit einer deutlichen Abwärtsbewegung auch im Listenbereich schließen.
+3. Bei großer Systemschrift oder einer längeren Auswahl normal hochscrollen.
+   Beim Herunterscrollen darf eine noch nicht oben angelangte Liste nicht schließen.
+   Nach Erreichen der Oberkante neu nach unten ziehen. Der Kopf bleibt immer
+   ziehbar. Tippen auf Optionen, außerhalb und Android-Zurück separat prüfen.
+4. Einen mittigen Bestätigungsdialog und ein verankertes Menü öffnen. Dort soll
+   keine Ziehgeste schließen. Eine Löschbestätigung zur Prüfung nur abbrechen.
+
+Ergebnis: Format, Typecheck und ESLint ohne Warnungen bestanden. Die von Expo
+Prebuild erneut eingefügte Leerzeile mit Leerzeichen in settings.gradle wurde
+auf den bisherigen Stand zurückgesetzt. Anschließend `git diff --check` sauber.
+Preview-Build erfolgreich in 2 min 56 s. Keine neuen Abhängigkeiten.
+
+Das Update auf dem HONOR war erfolgreich. Dev-Paket, Version 1.0.0 / Code 1,
+Release-Eigenschaft, Installer, eingebettetes JavaScript und identische Signatur
+wurden vorab geprüft. Ausschließlich `adb install -r -t -g --no-streaming`, keine
+Deinstallation oder Datenlöschung. Die normale MainActivity wurde gestartet.
+Das Smartphone blieb gesperrt. Der tatsächliche Wischtest, Listenscrollen und
+Abbruch ohne PDF-Erstellung bleiben deshalb manuell durch den Nutzer zu prüfen.
+Keine umfangreichen automatisierten Tests und keine fremde Testsitzung verändert.
+
+Installierte APK:
+`build/releases/dev/Hausakte-Dev-1.0.0-1-sheet-dismiss-20260926-2250.apk`.
