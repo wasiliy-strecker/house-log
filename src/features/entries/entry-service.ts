@@ -190,7 +190,11 @@ export class HouseService {
       );
       if (entryId && !entries.length)
         throw new Error('Der Eintrag wurde nicht gefunden.');
-      const bytes = await this.pdf.create(record, entries, full);
+      const createdAt = this.env.now();
+      const bytes = await this.pdf.create(record, entries, full, {
+        kind: entryId ? 'single' : 'history',
+        createdAt,
+      });
       const file = await this.vault.put(bytes, 'pdf');
       try {
         const report: SavedReport = {
@@ -200,7 +204,7 @@ export class HouseService {
           name: `${record.name.slice(0, 200)} · ${entryId ? 'Einzelprotokoll' : 'Gesamtprotokoll'} · ${full ? 'vollständig' : 'kompakt'}`,
           file,
           sha256: digest(bytes),
-          createdAt: this.env.now(),
+          createdAt,
           full,
         };
         await this.repository.saveReport(report);

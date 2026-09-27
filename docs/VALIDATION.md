@@ -1,8 +1,66 @@
 # Prüfprotokoll Hausakte
 
-Stand 20.09.2026. Ausschließlich synthetische Dokumente und Testdaten.
+Fortlaufendes Prüfprotokoll. Automatisierte Tests verwenden ausschließlich
+synthetische Dokumente und Testdaten. Visuelle Vergleiche am Nutzergerät sind
+in den jeweiligen Abschnitten gesondert beschrieben.
 Dieses Protokoll unterscheidet automatisierte Tests, tatsächliche Android-Prüfungen
 und noch offene Gerätetests. Ein erfolgreicher Build ersetzt keine Scannerprüfung.
+
+## PDF-Abgleich vom 27.09.2026
+
+Die aktuelle Fahrzeug-Verlaufs-PDF und ein gespeichertes Einzelprotokoll wurden
+lokal mit Poppler gerendert und angesehen. Die bisherige Hausakte-PDF wurde auf
+dem entsperrten HONOR in der internen Vorschau auf beiden Seiten angesehen.
+Vier neu erzeugte synthetische Hausakte-Ausgaben decken Einzel-/Verlaufsprotokoll
+und kompakt/vollständig ab. Gerenderte Seiten wurden mit der Fahrzeug-Vorlage
+verglichen. Schriftdateien sind bytegleich mit deren Roboto Regular und Bold.
+
+Gezielt automatisiert bestanden:
+
+- Fünf vorhandene Prüfungen unter „Real PDF processing“ mit echten PDF-Dateien,
+  Dateispeicher und SQLite. Originaltext, Querformat, Zuordnung der Anhänge,
+  bytegleiche Originale und ältere Protokolle, beschädigte/geschützte Dateien,
+  Prüfsummen-/Seitenzahlfehler und Bereinigung nach Speicherfehlern.
+- Drei neue Layout-Prüfungen mit echten PDFs und Poppler. Beide Protokollarten
+  und Ausgabevarianten, gemeinsamer Seitenaufbau, gepaarte Fotos, Originalseiten,
+  mehrzeilige Standorte, 100 Notizzeilen, 30 Verlaufseinträge, wiederholte
+  Tabellenköpfe, Text innerhalb der Seitenränder und vergleichbare Messwerte.
+
+Reproduktion ohne vollständige Testsuite:
+
+```bash
+npx vitest run tests/workflows.test.ts -t 'Real PDF processing'
+HAUSAKTE_PDF_REVIEW_DIR=/tmp/hausakte-pdf-review npx vitest run tests/pdf-layout.test.ts
+```
+
+Die optionale Umgebungsvariable legt ausschließlich synthetische Muster-PDFs im
+angegebenen lokalen Verzeichnis ab. Auf Nutzerwunsch keine umfangreiche Testsuite
+oder erneute Scanner-, Backup- und Erinnerungsabnahme für diese Layoutänderung.
+Der Android-Testhelfer verwendet ebenfalls die neuen Schriften und die angepasste
+Seitenzahl seines Musters. Sein vollständiger Ablauf wurde hier nicht erneut
+ausgeführt.
+
+Manuelle Abnahme durch den Nutzer: Für eine vorhandene Akte ein neues kompaktes
+und vollständiges Verlaufsprotokoll sowie beide Einzelprotokolle erzeugen.
+Stammdaten, Kosten, mehrzeiligen Standort, Fotoreihenfolge und Zuordnung der
+Original-PDF-Seiten vergleichen. Ein zuvor gespeichertes Protokoll erneut öffnen
+und dessen unveränderten alten Inhalt prüfen.
+
+Formatprüfung, ESLint und TypeScript strict bestanden. `npm run build:preview`
+erfolgreich. Die eigenständige Dev-APK wurde nach Prüfung von Kennung, Version,
+fehlendem Debug-Flag, Installer und übereinstimmendem Zertifikat datenbewahrend
+auf dem HONOR BVL-N49 aktualisiert und gestartet. Version bleibt 1.0.0 (1),
+Paket `com.appfactory.house_log.dev`. Fahrzeugakte und Emulator unverändert.
+
+Auf dem HONOR wurde ein neues vollständiges Verlaufsprotokoll der vorhandenen
+Akte erzeugt. Die native Vorschau zeigt zwei Seiten mit neuem Tabellenlayout,
+Roboto-Schrift, Eintragsdaten und Foto. Beide Seiten wurden angesehen. Das ist
+eine kurze reale Android-Kontrolle, keine vollständige erneute Geräteabnahme.
+Einzelprotokolle und mehrseitige Originalanhänge wurden für diese Änderung mit
+den beschriebenen synthetischen PDFs lokal geprüft. Deren zusätzliche visuelle
+Abnahme auf dem Smartphone übernimmt der Nutzer.
+
+APK: `build/releases/dev/Hausakte-Dev-1.0.0-1-pdf-layout-20260927-1925.apk`.
 
 ## UX-Abgleich am 20.09.2026 abends
 

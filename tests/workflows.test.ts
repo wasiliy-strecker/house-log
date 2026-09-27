@@ -242,9 +242,9 @@ describe('Real PDF processing', () => {
     const report = await f.house.createReport(r.id, null, true);
     const bytes = await f.vault.read(report.file);
     const pdf = await PDFDocument.load(bytes);
-    expect(pdf.getPageCount()).toBe(6);
-    expect(pdf.getPage(4).getWidth()).toBe(842);
-    expect(pdf.getPage(4).getHeight()).toBe(595);
+    expect(pdf.getPageCount()).toBe(5);
+    expect(pdf.getPage(3).getWidth()).toBe(842);
+    expect(pdf.getPage(3).getHeight()).toBe(595);
     const path = join(f.root, 'audit.pdf');
     await writeFile(path, bytes);
     const text = execFileSync('pdftotext', ['-layout', path, '-'], {
@@ -281,10 +281,14 @@ describe('Real PDF processing', () => {
     await writeFile(path, await f.vault.read(report.file));
     const text = execFileSync('pdftotext', [path, '-'], { encoding: 'utf8' });
     expect(text.indexOf('NEUER_ANHANG')).toBeLessThan(
-      text.indexOf(entry.activity),
+      text.lastIndexOf(entry.activity),
     );
-    expect(text.indexOf(entry.activity)).toBeLessThan(
+    expect(text.lastIndexOf(entry.activity)).toBeLessThan(
       text.indexOf('SYNTHETIC_PAGE_ONE'),
+    );
+    // The preceding overview includes both activities in newest-first order.
+    expect(text.indexOf('NEUER EINTRAG')).toBeLessThan(
+      text.indexOf(entry.activity),
     );
   });
   it('rejects empty, corrupted, truncated and protected PDF files', async () => {

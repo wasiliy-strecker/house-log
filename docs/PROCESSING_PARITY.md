@@ -50,7 +50,8 @@ Die [offizielle API](https://pdf-lib.js.org/docs/api/classes/pdfdocument) wurde 
 Android PdfRenderer validiert importierte PDFs zusätzlich, rendert dabei nur
 Prüfminiaturen und ersetzt niemals die Originaldatei durch Rasterbilder.
 Prüfsummen und Seitenzahlen verhindern stilles Auslassen veränderter Anhänge.
-Eine lokale DejaVu-Schrift stellt deutsche Sonderzeichen in Protokollen dar.
+Lokale Roboto-Schriften in Regular und Bold entsprechen seit dem PDF-Abgleich
+vom 27.09.2026 den Schriften der Fahrzeugakte.
 
 Kryptografie: [Noble Ciphers](https://github.com/paulmillr/noble-ciphers) und
 [Noble Hashes](https://github.com/paulmillr/noble-hashes), jeweils 2.4.0.
@@ -352,3 +353,52 @@ Sie wird für Einzel- und Gesamtprotokolle angefordert. Andere Menüs und Dialog
 behalten ihre Darstellung. Bei fehlenden Anhängen bleibt die zweite Karte
 sichtbar und deaktiviert, mit verständlichem Hinweis und ohne Chevron.
 Die bestehende Ziehgeste, Abbruchlogik und PDF-Verarbeitung bleiben erhalten.
+
+## PDF-Gestaltung vom 27.09.2026
+
+Referenz sind das zuletzt gespeicherte Fahrzeug-Verlaufsprotokoll vom 27.09.2026,
+das gespeicherte Einzelprotokoll vom 20.09.2026 und die aktuelle Implementierung
+in `evidence_report_service.dart`. Das bisherige Hausprotokoll wurde zusätzlich
+direkt in der PDF-Vorschau des entsperrten HONOR angesehen. Private Dokumente
+und Smartphone-Bilder werden nicht im Repository abgelegt.
+
+Einzel- und Verlaufsprotokolle verwenden jetzt dieselben Roboto-Schriftdateien,
+A4 mit 40 Punkten Rand, dieselben Schriftgrößen, Abstände, Linien und Farben.
+Es gibt eine kleine blaue Kopfzeile mit Abschnittsseitenzählung, den Titel
+„Hausprotokoll“, Untertitel, Erstellungszeit und Ausgabeart. Stammdaten stehen
+in zweispaltigen Tabellen. Eintragsüberschriften sind blau und 17 Punkte groß.
+Der Verlauf beginnt mit der Tabelle „Nr. / Zeitpunkt / Eintrag / Differenz“.
+Neueste Einträge stehen zuerst, die ältesten tragen Nummer 1. Tabellenköpfe
+werden bei langen Verläufen wiederholt. Lange Texte und Tabellenzellen fließen
+über weitere Seiten, ohne den Fußbereich zu überschreiben.
+
+Fotos stehen in gespeicherter Reihenfolge in einem Zweiersraster mit 170 Punkten
+Bildhöhe und vollständiger Darstellung. Ein einzelnes Foto einer Reihe steht
+zentriert. Weitere Reihen haben eine Eintragszuordnung. PDF-Dateinamen und
+Seitenzahlen sowie Notizen erscheinen beim Eintrag. Vollständige Ausgaben mit
+PDF-Anhängen haben wie die Referenz zuerst die Verlaufsübersicht, anschließend
+Eintragsabschnitte mit Fotos, Trennseiten und jeweils den Original-PDF-Seiten.
+Originalseiten erhalten keine zusätzlichen Kopfzeilen und werden nicht gerastert.
+Ohne eingebettete PDF-Anhänge fließen Übersicht und Details platzsparend zusammen.
+
+Fachliche Anpassungen sind Kategorie, Aktenname, mehrzeiliger Standort, optionale
+Anlagendaten, Einbau-/Anschaffungsdatum, Dienstleister und optionale Messstände.
+Es werden keine erfundenen Nullwerte ausgegeben. Differenzen beziehen sich auf
+direkt aufeinanderfolgende Einträge mit vorhandenen Messwerten derselben Einheit.
+Kosten bleiben ganzzahlige Centbeträge mit deutscher Eurodarstellung. Aktennotizen
+werden gesondert bezeichnet. Kompakte Ausgaben nennen vorhandene Fotos mit Anzahl,
+binden deren Bilddaten aber nicht ein. Alle Anhänge werden trotzdem auf Lesbarkeit,
+Prüfsumme und bei PDFs auf Seitenzahl geprüft.
+
+Hausakte hat bewusst keine historischen Stammdatenrevisionen. Deshalb steht
+auch im Einzelprotokoll „Aktuelle Aktenangaben“. Das vorhandene Hausakte-Schema
+speichert keinen separaten Zeitzonenoffset bei der Erfassung. Zeitangaben werden
+in der Zeitzone des exportierenden Geräts dargestellt und mit deren für den
+jeweiligen Zeitpunkt gültigen UTC-Offset gekennzeichnet. Die Erstellungszeit
+im Dokument entspricht der gespeicherten Protokollzeit.
+
+Bereits gespeicherte Protokolle und Originalanhänge bleiben unverändert.
+Es gibt keine Datenbankmigration und keine Änderung des Backupformats.
+Das Layout gilt ausschließlich für neu erzeugte Protokolle. Die PDF-Paginierung
+liegt app-lokal in `src/core/pdf/report-layout.ts`, die fachliche Zusammenstellung
+und Dateiprüfung im vorhandenen `PdfService`.

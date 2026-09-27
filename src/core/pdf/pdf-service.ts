@@ -1,6 +1,17 @@
-import { PDFDocument, rgb, type PDFFont, type PDFPage } from 'pdf-lib';
+import { PDFDocument, type PDFImage } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
-import { money, type HouseEntry, type HouseRecord } from '../domain/models';
+import {
+  money,
+  measurementDelta,
+  type HouseEntry,
+  type HouseRecord,
+} from '../domain/models';
+import {
+  ReportLayout,
+  REPORT_BLUE,
+  REPORT_GREY,
+  type ReportFonts,
+} from './report-layout';
 import type { FileVault } from '../ports';
 import { verifiedFile } from '../files/integrity';
 
@@ -45,57 +56,179 @@ export async function inspectPdf(bytes: Uint8Array): Promise<PDFDocument> {
     );
   }
 }
-class TextPages {
-  private page: PDFPage;
-  private y = 780;
-  constructor(
-    private pdf: PDFDocument,
-    private font: PDFFont,
-  ) {
-    this.page = pdf.addPage([595.28, 841.89]);
-  }
-  line(text: string, size = 11) {
-    const width = 495;
-    for (const paragraph of text.split('\n')) {
-      let line = '';
-      for (const character of paragraph) {
-        if (this.font.widthOfTextAtSize(line + character, size) > width) {
-          this.draw(line, size);
-          line = '';
-        }
-        line += character;
-      }
-      this.draw(line || ' ', size);
-    }
-  }
-  private draw(line: string, size: number) {
-    if (this.y < 55) {
-      this.page = this.pdf.addPage([595.28, 841.89]);
-      this.y = 780;
-    }
-    this.page.drawText(line, {
-      x: 50,
-      y: this.y,
-      size,
-      font: this.font,
-      color: rgb(0.13, 0.2, 0.21),
-    });
-    this.y -= size * 1.5;
+export type ReportFontBytes = { regular: Uint8Array; bold: Uint8Array };
+export type ReportOptions = {
+  kind: 'single' | 'history';
+  createdAt: string;
+};
+
+function dateTime(iso: string, withOffset = false) {
+  const date = new Date(iso);
+  const pad = (value: number) => String(value).padStart(2, '0');
+  const text = `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()}, ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  if (!withOffset) return text;
+  const offset = -date.getTimezoneOffset();
+  return `${text} (UTC${offset >= 0 ? '+' : '-'}${pad(Math.floor(Math.abs(offset) / 60))}:${pad(Math.abs(offset) % 60)})`;
+}
+function measurement(entry: HouseEntry) {
+  return entry.measurement
+    ? `${entry.measurement.value.toLocaleString('de-DE', { maximumFractionDigits: 20 })} ${entry.measurement.unit}`
+    : '';
+}
+function summary(entry: HouseEntry) {
+  return [entry.activity, measurement(entry)].filter(Boolean).join(' · ');
+}
+function difference(entry: HouseEntry, previous?: HouseEntry) {
+  if (!previous || !entry.measurement || !previous.measurement) return '–';
+  const delta = measurementDelta(entry, previous);
+  if (delta === null) return '– (Einheit gewechselt)';
+  const value = (number: number) =>
+    number.toLocaleString('de-DE', { maximumFractionDigits: 10 });
+  return `${value(previous.measurement.value)} → ${value(entry.measurement.value)} = ${value(delta)} ${entry.measurement.unit} Differenz`;
+}
+function recordSection(layout: ReportLayout, record: HouseRecord) {
+  const rows = [
+    ['Kategorie', record.category || 'Nicht angegeben'],
+    ['Aktenname', record.name],
+    ...Object.entries({
+      Standort: record.location,
+      Hersteller: record.manufacturer,
+      Modell: record.model,
+      Seriennummer: record.serial,
+      'Einbau / Anschaffung': record.installedOn
+        ? record.installedOn.split('-').reverse().join('.')
+        : '',
+    }).filter(([, value]) => value),
+  ];
+  layout.ensure(80);
+  layout.text('Aktuelle Aktenangaben', { bold: true });
+  layout.gap(6);
+  layout.dataTable(rows);
+  if (record.note.trim()) {
+    layout.ensure(45);
+    layout.gap(10);
+    layout.text('Notiz zur Akte', { bold: true });
+    layout.gap(4);
+    layout.text(record.note);
   }
 }
+function reportHeading(
+  layout: ReportLayout,
+  record: HouseRecord,
+  full: boolean,
+  options: ReportOptions,
+) {
+  layout.gap(16);
+  layout.text('Hausprotokoll', { size: 24, bold: true });
+  layout.gap(4);
+  layout.text(
+    options.kind === 'single' ? 'Einzelner Eintrag' : 'Aktenverlauf',
+    { size: 14, color: REPORT_GREY },
+  );
+  layout.gap(6);
+  layout.text(
+    `PDF erstellt am ${dateTime(options.createdAt)} · ${full ? 'Mit Fotos und PDFs' : 'Kompakt ohne Anhänge'}`,
+    { size: 9, color: REPORT_GREY },
+  );
+  layout.gap(18);
+  recordSection(layout, record);
+  layout.gap(18);
+}
+function entrySection(
+  layout: ReportLayout,
+  entry: HouseEntry,
+  number: number,
+  images: PDFImage[],
+  history: boolean,
+  full: boolean,
+) {
+  const rows = [
+    ['Aktivität', entry.activity],
+    ...(entry.measurement
+      ? [['Mess- / Betriebsstand', measurement(entry)]]
+      : []),
+    ['Zeitpunkt des Eintrags', dateTime(entry.occurredAt, true)],
+    ...(entry.provider ? [['Dienstleister', entry.provider]] : []),
+    ...(entry.costCents !== null ? [['Kosten', money(entry.costCents)]] : []),
+  ];
+  // Keep heading, fields and the first photo pair together whenever they fit.
+  layout.ensure(
+    (history ? 18 : 0) +
+      (17 * 2400) / 2048 +
+      8 +
+      layout.dataHeight(rows) +
+      (images.length ? 10 + layout.photoRowHeight() : 0),
+  );
+  if (history) layout.gap(18);
+  layout.text(`Eintrag ${number}`, {
+    size: 17,
+    bold: true,
+    color: REPORT_BLUE,
+  });
+  layout.gap(8);
+  layout.dataTable(rows);
+  if (images.length) {
+    layout.gap(10);
+    layout.photos(images, 0);
+    for (let start = 2; start < images.length; start += 2) {
+      const caption = `Eintrag ${number} · ${summary(entry)} · ${dateTime(entry.occurredAt, true)}`;
+      layout.ensure(
+        12 + layout.textHeight(caption, 10) + 6 + layout.photoRowHeight(),
+      );
+      layout.gap(12);
+      layout.text(caption, { size: 10 });
+      layout.gap(6);
+      layout.photos(images, start);
+    }
+  }
+  const photos = entry.attachments.filter((a) => a.kind === 'photo');
+  if (!full && photos.length) {
+    layout.ensure(40);
+    layout.gap(10);
+    layout.text(`Fotos: ${photos.length} (nicht eingebettet)`, {
+      size: 10,
+      color: REPORT_GREY,
+    });
+  }
+  const documents = entry.attachments.filter((a) => a.kind === 'pdf');
+  if (documents.length) {
+    layout.ensure(45);
+    layout.gap(10);
+    layout.text('PDF-Dokumente', { bold: true });
+    for (const document of documents)
+      layout.text(
+        `${document.name} · ${document.pages} ${document.pages === 1 ? 'Seite' : 'Seiten'}`,
+      );
+  }
+  if (entry.note.trim()) {
+    layout.ensure(45);
+    layout.gap(10);
+    layout.text('Notiz', { bold: true });
+    layout.gap(4);
+    layout.text(entry.note);
+  }
+}
+
 export class PdfService {
   constructor(
     private vault: FileVault,
-    private fontBytes: () => Promise<Uint8Array>,
+    private fontBytes: () => Promise<ReportFontBytes>,
   ) {}
+
   async create(
     record: HouseRecord,
     entries: HouseEntry[],
     full: boolean,
+    options: ReportOptions,
   ): Promise<Uint8Array> {
     if (
       entries.reduce(
-        (sum, e) => sum + e.attachments.reduce((bytes, a) => bytes + a.size, 0),
+        (sum, entry) =>
+          sum +
+          entry.attachments.reduce(
+            (bytes, attachment) => bytes + attachment.size,
+            0,
+          ),
         0,
       ) >
       64 * 1024 * 1024
@@ -104,98 +237,127 @@ export class PdfService {
         'Die Anhänge dieses Protokolls überschreiten 64 MB. Bitte Einzelprotokolle erstellen.',
       );
     const pdf = await PDFDocument.create();
-    pdf.setTitle(`Hausakte · ${record.name}`);
+    pdf.setTitle(`Hausprotokoll · ${record.name}`);
+    pdf.setAuthor('Hausakte');
+    pdf.setSubject(
+      options.kind === 'single'
+        ? 'Private Dokumentation eines Eintrags'
+        : 'Private Dokumentation des Aktenverlaufs',
+    );
     pdf.setProducer('Hausakte · lokale Verarbeitung');
+    pdf.setCreationDate(new Date(options.createdAt));
     pdf.registerFontkit(fontkit);
-    const font = await pdf.embedFont(await this.fontBytes(), { subset: true });
-    const cover = new TextPages(pdf, font);
-    cover.line('HAUSAKTE', 24);
-    cover.line(record.name, 20);
-    cover.line(
-      full
-        ? 'Protokoll mit Fotos und PDFs'
-        : 'Kompaktes Protokoll ohne Anhänge',
-    );
-    for (const [label, value] of Object.entries({
-      Kategorie: record.category,
-      Standort: record.location,
-      Hersteller: record.manufacturer,
-      Modell: record.model,
-      Seriennummer: record.serial,
-      Einbau: record.installedOn,
-      Notiz: record.note,
-    })) {
-      if (value) cover.line(`${label}: ${value}`);
-    }
-    cover.line(
-      `${entries.length} ${entries.length === 1 ? 'Eintrag' : 'Einträge'}. Neueste zuerst.`,
-    );
-    for (const entry of [...entries].sort(
+    const bytes = await this.fontBytes();
+    const fonts: ReportFonts = {
+      regular: await pdf.embedFont(bytes.regular, { subset: true }),
+      bold: await pdf.embedFont(bytes.bold, { subset: true }),
+    };
+    const ordered = [...entries].sort(
       (a, b) =>
-        b.occurredAt.localeCompare(a.occurredAt) || b.id.localeCompare(a.id),
-    )) {
-      const text = new TextPages(pdf, font);
-      text.line(entry.activity, 19);
-      text.line(new Date(entry.occurredAt).toLocaleString('de-DE'));
-      if (entry.provider) text.line(`Dienstleister: ${entry.provider}`);
-      if (entry.costCents !== null)
-        text.line(`Kosten: ${money(entry.costCents)}`);
-      if (entry.measurement)
-        text.line(
-          `Mess- / Betriebsstand: ${entry.measurement.value.toLocaleString('de-DE')} ${entry.measurement.unit}`,
+        Date.parse(b.occurredAt) - Date.parse(a.occurredAt) ||
+        b.id.localeCompare(a.id),
+    );
+    const withDocuments =
+      full &&
+      ordered.some((entry) => entry.attachments.some((a) => a.kind === 'pdf'));
+    const section = (number?: number) => {
+      const layout = new ReportLayout(pdf, fonts, number);
+      reportHeading(layout, record, full, options);
+      return layout;
+    };
+    let layout =
+      options.kind === 'history' || !withDocuments ? section() : undefined;
+    if (options.kind === 'history') {
+      if (ordered.length)
+        layout!.historyTable(
+          ordered.map((entry, i) => [
+            String(ordered.length - i),
+            dateTime(entry.occurredAt, true),
+            summary(entry),
+            difference(entry, ordered[i + 1]),
+          ]),
         );
-      if (entry.note) text.line(entry.note);
-      text.line(
-        `${entry.attachments.filter((a) => a.kind === 'photo').length} Fotos · ${entry.attachments.filter((a) => a.kind === 'pdf').length} PDFs`,
-      );
-      for (const attachment of entry.attachments) text.line(attachment.name);
-      // Even compact reports verify every referenced attachment before success.
+      else layout!.text('Noch keine Einträge vorhanden.');
+      if (withDocuments) {
+        layout!.finish();
+        layout = undefined;
+      }
+    }
+    for (const [index, entry] of ordered.entries()) {
+      const number = options.kind === 'single' ? 1 : ordered.length - index;
+      const images: PDFImage[] = [];
+      // Verify every reference, also for compact output. A broken file must fail
+      // the whole report before HouseService persists a completed report.
       for (const attachment of entry.attachments) {
-        const bytes = await verifiedFile(this.vault, attachment);
+        const content = await verifiedFile(this.vault, attachment);
         if (attachment.kind === 'pdf') {
-          const original = await inspectPdf(bytes);
+          const original = await inspectPdf(content);
           if (original.getPageCount() !== attachment.pages)
             throw new Error(
               'Die Seitenzahl eines PDF-Anhangs stimmt nicht mehr.',
             );
-          if (full) {
-            const divider = new TextPages(pdf, font);
-            divider.line('PDF-Anhang', 20);
-            divider.line(`${record.name} · ${entry.activity}`);
-            divider.line(new Date(entry.occurredAt).toLocaleString('de-DE'));
-            divider.line(attachment.name, 16);
-            divider.line(`${original.getPageCount()} Originalseiten`);
-            const copied = await pdf.copyPages(
-              original,
-              original.getPageIndices(),
-            );
-            copied.forEach((page) => pdf.addPage(page));
-          }
         } else {
-          const image = await pdf.embedJpg(bytes);
-          if (full) {
-            const page = pdf.addPage([595.28, 841.89]);
-            const fit = image.scaleToFit(495, 700);
-            page.drawText(`Foto · ${entry.activity}`.slice(0, 65), {
-              x: 50,
-              y: 790,
-              size: 12,
-              font,
-            });
-            page.drawImage(image, {
-              x: (595.28 - fit.width) / 2,
-              y: (760 - fit.height) / 2 + 20,
-              ...fit,
-            });
-          }
+          // Validate compact photos in a temporary document so their binary
+          // data is not embedded as unused objects in the compact report.
+          const image = await (
+            full ? pdf : await PDFDocument.create()
+          ).embedJpg(content);
+          if (full) images.push(image);
+        }
+      }
+      const current = layout ?? section(number);
+      const hasDetails =
+        entry.provider ||
+        entry.costCents !== null ||
+        entry.note.trim() ||
+        entry.attachments.length;
+      if (options.kind === 'single' || withDocuments || hasDetails)
+        entrySection(
+          current,
+          entry,
+          number,
+          images,
+          options.kind === 'history',
+          full,
+        );
+      if (withDocuments) {
+        current.finish();
+        for (const attachment of entry.attachments.filter(
+          (a) => a.kind === 'pdf',
+        )) {
+          const original = await inspectPdf(
+            await verifiedFile(this.vault, attachment),
+          );
+          const divider = new ReportLayout(pdf, fonts, undefined, true);
+          divider.text('HAUSAKTE', { bold: true, color: REPORT_BLUE });
+          divider.gap(40);
+          divider.text(`Dokument zu Eintrag ${number}`, {
+            size: 22,
+            bold: true,
+          });
+          divider.gap(12);
+          divider.text(dateTime(entry.occurredAt, true));
+          divider.gap(24);
+          divider.text(attachment.name, { size: 16, bold: true });
+          divider.gap(12);
+          divider.text(
+            `${original.getPageCount()} Dokumentseiten folgen. Die Originaldatei bleibt separat in der Hausakte gespeichert.`,
+          );
+          // Copy original PDF pages, preserving searchable text, rotation and size.
+          const copied = await pdf.copyPages(
+            original,
+            original.getPageIndices(),
+          );
+          copied.forEach((page) => pdf.addPage(page));
         }
       }
     }
-    const bytes = await pdf.save();
-    if (bytes.length > MAX_FILE_BYTES)
+    layout?.finish();
+    const result = await pdf.save();
+    if (result.length > MAX_FILE_BYTES)
       throw new Error(
         'Das Protokoll überschreitet 50 MB. Bitte kleinere Einzelprotokolle erstellen.',
       );
-    return bytes;
+    return result;
   }
 }

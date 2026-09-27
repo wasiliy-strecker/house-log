@@ -51,9 +51,15 @@ async function createServices(): Promise<Services> {
     random: Crypto.getRandomBytes,
   };
   const pdf = new PdfService(vault, async () => {
-    const asset = Asset.fromModule(require('../../assets/DejaVuSans.ttf'));
-    await asset.downloadAsync();
-    return new File(asset.localUri!).bytes();
+    const read = async (module: number) => {
+      const asset = Asset.fromModule(module);
+      await asset.downloadAsync();
+      return new File(asset.localUri!).bytes();
+    };
+    return {
+      regular: await read(require('../../assets/ui/Roboto-Regular.ttf')),
+      bold: await read(require('../../assets/ui/Roboto-Bold.ttf')),
+    };
   });
   const house = new HouseService(repository, vault, env, pdf, {
     async sync(records, entries) {

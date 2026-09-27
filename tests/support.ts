@@ -79,9 +79,14 @@ export async function fixture(
   await migrate(db);
   const repo = new SqlRepository(db);
   const vault = new NodeVault(join(root, 'vault'));
-  const pdf = new PdfService(vault, () =>
-    readFile(new URL('../assets/DejaVuSans.ttf', import.meta.url)),
-  );
+  const pdf = new PdfService(vault, async () => ({
+    regular: await readFile(
+      new URL('../assets/ui/Roboto-Regular.ttf', import.meta.url),
+    ),
+    bold: await readFile(
+      new URL('../assets/ui/Roboto-Bold.ttf', import.meta.url),
+    ),
+  }));
   const house = new HouseService(repo, vault, env, pdf, reminders);
   const backup = new BackupService(house, new BackupCodec(env));
   return {

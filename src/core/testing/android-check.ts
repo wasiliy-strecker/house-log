@@ -50,9 +50,14 @@ export async function androidCheck(
     await a.downloadAsync();
     return new File(a.localUri!);
   }
-  const pdf = new PdfService(vault, async () =>
-    (await asset(require('../../../assets/DejaVuSans.ttf'))).bytes(),
-  );
+  const pdf = new PdfService(vault, async () => ({
+    regular: await (
+      await asset(require('../../../assets/ui/Roboto-Regular.ttf'))
+    ).bytes(),
+    bold: await (
+      await asset(require('../../../assets/ui/Roboto-Bold.ttf'))
+    ).bytes(),
+  }));
   const house = new HouseService(repo, vault, env, pdf, {
     async sync() {
       return [];
@@ -152,7 +157,7 @@ export async function androidCheck(
     const report = await house.createReport(record.id, null, true);
     const reportBytes = await vault.read(report.file);
     assert(
-      (await houseNative.validatePdf(vault.uri(report.file))) === 9,
+      (await houseNative.validatePdf(vault.uri(report.file))) === 8,
       'Protokollseiten fehlen.',
     );
     assert(
@@ -161,7 +166,7 @@ export async function androidCheck(
     );
     step('Eintrag bearbeitet und sortiert. Vollständiges PDF nativ geöffnet.');
     const preview = await houseNative.openPdfPreview(vault.uri(report.file));
-    assert(preview.pages.length === 9, 'Vorschauseiten fehlen.');
+    assert(preview.pages.length === 8, 'Vorschauseiten fehlen.');
     const landscapePreview = await houseNative.openPdfPreview(
       vault.uri(first.file),
     );
