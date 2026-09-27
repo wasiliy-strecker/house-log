@@ -335,3 +335,20 @@ verfügbar. Keine neue Abhängigkeit oder Änderung von Geschäftsdaten.
 
 Die installierte eigenständige Testversion benötigt für diese TypeScript-Änderung
 wie vereinbart ein neues Preview-APK mit eingebettetem JavaScript.
+
+## PDF-Auswahl als Karten vom 27.09.2026
+
+Referenz sind die beiden Smartphone-Screenshots von 18:54 und die aktuelle
+`evidence_photo_mode_sheet.dart` mit `AppTheme.cardTheme` in Fahrzeugakte.
+Die PDF-Auswahl verwendet jetzt zwei getrennte Karten mit 18 Punkten Eckenradius,
+einem feinen OutlineVariant-Rand, Card-Hintergrund, kräftigem 16-Punkte-Titel,
+Untertitel und rechtem Chevron. Zwischen den Karten liegen 8 Punkte. Symbole,
+Beschriftungen und der Hintergrund der unteren Auswahl entsprechen der Vorlage.
+Hausbezogene Texte bleiben fachlich angepasst. Hell-/Dunkelmodus und große
+Systemschrift werden weiterhin berücksichtigt.
+
+Die gemeinsame Auswahl erhält dafür die gezielte Darstellung `optionStyle: cards`.
+Sie wird für Einzel- und Gesamtprotokolle angefordert. Andere Menüs und Dialoge
+behalten ihre Darstellung. Bei fehlenden Anhängen bleibt die zweite Karte
+sichtbar und deaktiviert, mit verständlichem Hinweis und ohne Chevron.
+Die bestehende Ziehgeste, Abbruchlogik und PDF-Verarbeitung bleiben erhalten.

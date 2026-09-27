@@ -41,6 +41,7 @@ type Question = {
   title: string;
   message?: string;
   options: Choice[];
+  optionStyle?: 'cards';
   dialog?: boolean;
   anchor?: MenuAnchor;
 };
@@ -60,6 +61,8 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   const safe = useSafeAreaInsets();
   const window = useWindowDimensions();
   const [question, setQuestion] = useState<Question>();
+  const cardOptions =
+    question?.optionStyle === 'cards' && !question.dialog && !question.anchor;
   const resolve = useRef<((v: string | null) => void) | null>(null);
   const [message, setMessage] = useState('');
   useEffect(() => {
@@ -185,11 +188,12 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                 onLayout={sheet.onLayout}
                 style={[
                   {
-                    backgroundColor: c.elevated,
+                    backgroundColor: cardOptions ? c.card : c.elevated,
                     borderRadius: 28,
                     borderBottomLeftRadius: question?.dialog ? 28 : 0,
                     borderBottomRightRadius: question?.dialog ? 28 : 0,
                     padding: question?.dialog ? 24 : 16,
+                    paddingTop: cardOptions ? 22 : question?.dialog ? 24 : 16,
                     paddingBottom: question?.dialog ? 24 : safe.bottom + 20,
                     maxHeight: '85%',
                     maxWidth: 640,
@@ -254,29 +258,38 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                     style={{
                       width: 32,
                       height: 4,
-                      backgroundColor: c.outline,
+                      backgroundColor: cardOptions ? c.muted : c.outline,
                       borderRadius: 4,
                       alignSelf: 'center',
-                      marginBottom: 8,
+                      marginBottom: cardOptions ? 10 : 8,
                     }}
                   />
                 )}
                 {!question?.anchor && (
-                  <Text
-                    accessibilityRole="header"
-                    style={[
-                      text,
-                      {
-                        fontSize: question?.dialog ? 24 : 22,
-                        lineHeight: 28,
-                        fontFamily: question?.dialog ? 'Roboto' : 'RobotoBold',
-                      },
-                    ]}
-                  >
-                    {question?.title}
-                  </Text>
+                  <View style={{ gap: cardOptions ? 6 : 12 }}>
+                    <Text
+                      accessibilityRole="header"
+                      style={[
+                        text,
+                        {
+                          fontSize: question?.dialog ? 24 : 22,
+                          lineHeight: 28,
+                          fontFamily: question?.dialog
+                            ? 'Roboto'
+                            : 'RobotoBold',
+                        },
+                      ]}
+                    >
+                      {question?.title}
+                    </Text>
+                    {!!question?.message && (
+                      <Text style={[text, { color: c.muted }]}>
+                        {question.message}
+                      </Text>
+                    )}
+                  </View>
                 )}
-                {!!question?.message && (
+                {!!question?.anchor && !!question.message && (
                   <Text style={[text, { color: c.muted }]}>
                     {question.message}
                   </Text>
@@ -315,13 +328,33 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                           alignItems: 'center',
                           gap: 16,
                           borderRadius: question.dialog ? 28 : 12,
-                          opacity: o.disabled ? 0.38 : 1,
+                          opacity: !cardOptions && o.disabled ? 0.38 : 1,
+                          ...(cardOptions
+                            ? ({
+                                minHeight: 72,
+                                backgroundColor: c.card,
+                                borderWidth: 1,
+                                borderColor: c.border,
+                                borderRadius: 18,
+                                overflow: 'hidden',
+                                // Flutter paints the border over the ListTile padding.
+                                paddingLeft: 15,
+                                paddingRight: 23,
+                                paddingVertical: 7,
+                              } as const)
+                            : {}),
                         }}
                       >
                         {!!o.icon && (
                           <Icon
                             name={o.icon}
-                            color={o.danger ? c.danger : c.primary}
+                            color={
+                              cardOptions && o.disabled
+                                ? c.ink + '61'
+                                : o.danger
+                                  ? c.danger
+                                  : c.primary
+                            }
                           />
                         )}
                         <View style={question.dialog ? undefined : { flex: 1 }}>
@@ -329,13 +362,21 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                             style={[
                               text,
                               {
-                                fontFamily: 'RobotoMedium',
+                                fontFamily: cardOptions
+                                  ? 'RobotoBold'
+                                  : 'RobotoMedium',
                                 fontSize: 16,
-                                color: o.danger
-                                  ? c.danger
-                                  : question.dialog
-                                    ? c.primary
-                                    : c.ink,
+                                ...(cardOptions
+                                  ? { lineHeight: 24, letterSpacing: 0.15 }
+                                  : {}),
+                                color:
+                                  cardOptions && o.disabled
+                                    ? c.ink + '61'
+                                    : o.danger
+                                      ? c.danger
+                                      : question.dialog
+                                        ? c.primary
+                                        : c.ink,
                               },
                             ]}
                           >
@@ -343,12 +384,22 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                           </Text>
                           {!!o.description && (
                             <Text
-                              style={[text, { color: c.muted, marginTop: 4 }]}
+                              style={[
+                                text,
+                                {
+                                  color: c.muted,
+                                  marginTop: cardOptions ? 0 : 4,
+                                },
+                                cardOptions && { letterSpacing: 0.25 },
+                              ]}
                             >
                               {o.description}
                             </Text>
                           )}
                         </View>
+                        {cardOptions && !o.disabled && (
+                          <Icon name="chevron_right" color={c.muted} />
+                        )}
                       </Pressable>
                     ))}
                   </Animated.ScrollView>

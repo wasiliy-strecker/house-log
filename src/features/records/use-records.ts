@@ -233,21 +233,24 @@ export function useReports(
       const mode = await feedback.choose({
         title: 'PDF-Inhalt wählen',
         message: 'Wähle, welche Inhalte deine PDF enthalten soll.',
+        optionStyle: 'cards',
         options: [
           {
             value: 'compact',
-            label: 'Kompakte PDF ohne Anhänge',
+            label: 'Kompakt ohne Anhänge',
             description:
               'Einträge, Dienstleister, Kosten, Notizen und Dokumentenliste – ohne Anhänge.',
             icon: 'description_outlined',
           },
           {
             value: 'full',
-            label: 'Mit Fotos und PDF-Dokumenten',
+            label: 'Mit Fotos und PDFs',
             description: hasAttachments
-              ? 'Enthält alle aktuellen Fotos und alle Seiten der PDF-Dokumente.'
+              ? entryId
+                ? 'Enthält alle aktuellen Fotos und alle Seiten der PDF-Dokumente.'
+                : 'Enthält pro Eintrag alle aktuellen Fotos und PDF-Dokumente.'
               : 'Keine aktuellen Fotos oder PDFs vorhanden.',
-            icon: 'photo_library_outlined',
+            icon: 'photo_outlined',
             disabled: !hasAttachments,
           },
         ],

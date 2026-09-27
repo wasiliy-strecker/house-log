@@ -417,3 +417,31 @@ Keine umfangreichen automatisierten Tests und keine fremde Testsitzung veränder
 
 Installierte APK:
 `build/releases/dev/Hausakte-Dev-1.0.0-1-sheet-dismiss-20260926-2250.apk`.
+
+## Kartenoptik der PDF-Auswahl vom 27.09.2026
+
+Die zwei neuesten Smartphone-Screenshots von Hausakte und Fahrzeugakte sowie
+Flutter-Kartenstil und PDF-Auswahl wurden verglichen. Die Überarbeitung ist auf
+die Darstellung der PDF-Inhaltsauswahl begrenzt.
+
+Manuelle Abnahme durch den Nutzer: PDF-Auswahl eines Einzel- oder Gesamtprotokolls
+öffnen. Zwei abgerundete Karten mit feinem Rand, Symbol, kräftigem Titel,
+Untertitel und Chevron prüfen. Mit Hell-/Dunkelmodus und großer Schrift sollen
+Texte vollständig lesbar bleiben. Bei einer Akte ohne Anhänge bleibt die zweite
+Karte deaktiviert, ihr Hinweis lesbar und der Chevron fehlt. Herunterziehen,
+Android-Zurück und Tippen außerhalb sollen weiterhin ohne PDF-Erstellung schließen.
+Keine umfangreiche Testsuite für diese Darstellungsänderung.
+
+Bestanden: Typecheck, ESLint ohne Warnungen, Formatprüfung, Diff-Prüfung und
+Preview-Build in 2 min 20 s. Keine umfangreiche Testsuite ausgeführt.
+Vor dem datenbewahrenden Update wurden Dev-Kennung, Version 1.0.0 / Code 1,
+Release-Eigenschaft, Installer, eingebettetes JavaScript und identische Signatur
+geprüft. `adb install -r -t -g --no-streaming` erfolgreich. Keine Deinstallation
+oder Datenlöschung. Hausakte Dev wurde über die normale Activity gestartet.
+
+Das Telefon war bei der Übergabe gesperrt. Die neue Kartenansicht sowie die
+Hell-/Dunkel- und Großschrift-Abnahme bleiben daher visuell durch den Nutzer zu
+prüfen. Fremde Testsitzungen und die Flutter-Referenz wurden nicht verändert.
+
+Installierte APK:
+`build/releases/dev/Hausakte-Dev-1.0.0-1-pdf-cards-20260927-1901.apk`.
