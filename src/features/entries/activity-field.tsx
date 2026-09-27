@@ -10,9 +10,10 @@ export function ActivityField(props: {
   return (
     <SuggestionField
       {...props}
-      label="Aktivität *"
+      label="Aktivität"
       placeholder="z. B. Wartung oder Renovierung"
       helper="Vorschlag auswählen oder eigene Aktivität eingeben."
+      helperStyle={{ lineHeight: 16, letterSpacing: 0.4 }}
     />
   );
 }

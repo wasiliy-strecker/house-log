@@ -1,11 +1,19 @@
 import { useState } from 'react';
-import { Keyboard, Pressable, ScrollView, View } from 'react-native';
+import {
+  Keyboard,
+  Pressable,
+  ScrollView,
+  View,
+  type StyleProp,
+  type TextStyle,
+} from 'react-native';
 import { Body, Field, useTheme } from './components';
 
 export function SuggestionField({
   label,
   placeholder,
   helper,
+  helperStyle,
   value,
   suggestions,
   onChange,
@@ -16,6 +24,7 @@ export function SuggestionField({
   label: string;
   placeholder?: string;
   helper: string;
+  helperStyle?: StyleProp<TextStyle>;
   value: string;
   suggestions: string[];
   onChange(value: string): void;
@@ -61,7 +70,10 @@ export function SuggestionField({
           onSubmitEditing={close}
         />
       </View>
-      <Body muted style={{ paddingHorizontal: 16, fontSize: 12 }}>
+      <Body
+        muted
+        style={[{ paddingHorizontal: 16, fontSize: 12 }, helperStyle]}
+      >
         {helper}
       </Body>
       {focused && !disabled && !!options.length && (

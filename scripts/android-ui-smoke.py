@@ -78,7 +78,7 @@ if __name__ == "__main__":
     wait_for(name)
     tap("Eintrag erfassen")
     tap("Ohne Foto erfassen")
-    enter("Aktivität *", "Wartung")
+    enter("Aktivität", "Wartung")
     enter("Kosten (optional)", "123,45")
     enter("Handwerker / Dienstleister (optional)", "Testbetrieb")
     enter("Notiz", "Synthetischer UI-Test")

@@ -95,7 +95,7 @@ export function EntryEditorScreen() {
           <Documents documents={documents} actions={actions} />
         </>
       ) : (
-        <View style={{ gap: 16, paddingTop: 8 }}>
+        <View style={{ gap: 16 }}>
           <ActivityField
             value={form.activity}
             suggestions={vm.activities}
@@ -105,8 +105,10 @@ export function EntryEditorScreen() {
             }
             onChange={(v) => vm.change('activity', v)}
           />
-          <PhotoEditor photos={photos} actions={actions} />
-          <Documents documents={documents} actions={actions} />
+          <View>
+            <PhotoEditor photos={photos} actions={actions} />
+            <Documents documents={documents} actions={actions} />
+          </View>
           <SelectField
             label="Einheit des Eintrags"
             icon="straighten"

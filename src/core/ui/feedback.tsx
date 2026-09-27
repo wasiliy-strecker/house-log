@@ -41,7 +41,7 @@ type Question = {
   title: string;
   message?: string;
   options: Choice[];
-  optionStyle?: 'cards';
+  optionStyle?: 'cards' | 'plain';
   dialog?: boolean;
   anchor?: MenuAnchor;
 };
@@ -63,6 +63,14 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   const [question, setQuestion] = useState<Question>();
   const cardOptions =
     question?.optionStyle === 'cards' && !question.dialog && !question.anchor;
+  const plainMenu = question?.optionStyle === 'plain' && !!question.anchor;
+  const plainMenuWidth = Math.min(
+    window.width - 16,
+    168 * Math.max(1, window.fontScale),
+  );
+  const plainMenuHeight =
+    (question?.options.length ?? 0) * Math.max(48, 20 * window.fontScale + 24) +
+    16;
   const resolve = useRef<((v: string | null) => void) | null>(null);
   const [message, setMessage] = useState('');
   useEffect(() => {
@@ -188,7 +196,13 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                 onLayout={sheet.onLayout}
                 style={[
                   {
-                    backgroundColor: cardOptions ? c.card : c.elevated,
+                    backgroundColor: plainMenu
+                      ? c.dark
+                        ? '#1D2026'
+                        : '#ECEEF4'
+                      : cardOptions
+                        ? c.card
+                        : c.elevated,
                     borderRadius: 28,
                     borderBottomLeftRadius: question?.dialog ? 28 : 0,
                     borderBottomRightRadius: question?.dialog ? 28 : 0,
@@ -248,6 +262,30 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                           gap: 0,
                           elevation: 8,
                         } as const)
+                      : {}),
+                    ...(plainMenu && question?.anchor
+                      ? {
+                          left: Math.max(
+                            8,
+                            Math.min(
+                              question.anchor.x +
+                                question.anchor.width -
+                                plainMenuWidth,
+                              window.width - plainMenuWidth - 8,
+                            ),
+                          ),
+                          top: Math.max(
+                            safe.top + 8,
+                            Math.min(
+                              question.anchor.y,
+                              window.height - safe.bottom - plainMenuHeight - 8,
+                            ),
+                          ),
+                          width: plainMenuWidth,
+                          paddingHorizontal: 0,
+                          paddingVertical: 8,
+                          paddingBottom: 8,
+                        }
                       : {}),
                   },
                   sheet.style,
@@ -309,7 +347,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                             justifyContent: 'flex-end',
                             gap: 8,
                           }
-                        : { gap: 8 }
+                        : { gap: plainMenu ? 0 : 8 }
                     }
                   >
                     {question?.options.map((o) => (
@@ -328,7 +366,15 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                           alignItems: 'center',
                           gap: 16,
                           borderRadius: question.dialog ? 28 : 12,
-                          opacity: !cardOptions && o.disabled ? 0.38 : 1,
+                          opacity:
+                            !cardOptions && !plainMenu && o.disabled ? 0.38 : 1,
+                          ...(plainMenu
+                            ? {
+                                paddingHorizontal: 12,
+                                paddingVertical: 12,
+                                borderRadius: 0,
+                              }
+                            : {}),
                           ...(cardOptions
                             ? ({
                                 minHeight: 72,
@@ -362,15 +408,18 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                             style={[
                               text,
                               {
-                                fontFamily: cardOptions
-                                  ? 'RobotoBold'
-                                  : 'RobotoMedium',
-                                fontSize: 16,
+                                fontFamily: plainMenu
+                                  ? 'Roboto'
+                                  : cardOptions
+                                    ? 'RobotoBold'
+                                    : 'RobotoMedium',
+                                fontSize: plainMenu ? 14 : 16,
+                                ...(plainMenu ? { letterSpacing: 0.25 } : {}),
                                 ...(cardOptions
                                   ? { lineHeight: 24, letterSpacing: 0.15 }
                                   : {}),
                                 color:
-                                  cardOptions && o.disabled
+                                  (cardOptions || plainMenu) && o.disabled
                                     ? c.ink + '61'
                                     : o.danger
                                       ? c.danger

@@ -57,25 +57,26 @@ export function PhotoGallery({
     const selected = await feedback.choose({
       title: `Foto ${index + 1} bearbeiten`,
       anchor,
+      optionStyle: 'plain',
       options: [
-        {
-          value: 'earlier',
-          label: 'Nach vorne',
-          icon: 'chevron_left',
-          disabled: index === 0,
-        },
-        {
-          value: 'later',
-          label: 'Nach hinten',
-          icon: 'chevron_right',
-          disabled: index + 1 === photos.length,
-        },
-        { value: 'replace', label: 'Foto ersetzen', icon: 'image_outlined' },
+        ...(photos.length > 1
+          ? [
+              {
+                value: 'earlier',
+                label: 'Nach vorne',
+                disabled: index === 0,
+              },
+              {
+                value: 'later',
+                label: 'Nach hinten',
+                disabled: index + 1 === photos.length,
+              },
+            ]
+          : []),
+        { value: 'replace', label: 'Foto ersetzen' },
         {
           value: 'remove',
           label: 'Foto entfernen',
-          icon: 'delete_outline',
-          danger: true,
         },
       ],
     });
@@ -134,7 +135,6 @@ export function PhotoGallery({
                     aspectRatio: 4 / 3,
                     width: '100%',
                     borderRadius: 14,
-                    backgroundColor: c.input,
                   }}
                 />
               </Pressable>
@@ -232,30 +232,37 @@ export function PhotoEditor({
   actions: AttachmentActions;
 }) {
   return (
-    <Card style={{ padding: 14, overflow: 'visible' }}>
-      <Body strong style={{ fontSize: 16 }}>
+    <Card style={{ margin: 4, padding: 13, gap: 0, overflow: 'visible' }}>
+      <Body
+        strong
+        style={{ fontSize: 16, lineHeight: 24, letterSpacing: 0.15 }}
+      >
         Aktuelle Fotos ({photos.length})
       </Body>
       {photos.length > 1 && (
-        <Body>
+        <Body style={{ marginTop: 6 }}>
           Zum Sortieren ein Foto länger gedrückt halten und verschieben.
         </Body>
       )}
-      <PhotoGallery photos={photos} actions={actions} />
-      <Button
-        secondary
-        icon="add_a_photo_outlined"
-        title={photos.length ? 'Weiteres Foto aufnehmen' : 'Foto aufnehmen'}
-        disabled={actions.busy}
-        onPress={() => void actions.pick('camera')}
-      />
-      <Button
-        secondary
-        icon="photo_library_outlined"
-        title="Fotos aus Galerie hinzufügen"
-        disabled={actions.busy}
-        onPress={() => void actions.pick('gallery')}
-      />
+      <View style={{ marginTop: 10 }}>
+        <PhotoGallery photos={photos} actions={actions} />
+      </View>
+      <View style={{ marginTop: 12, gap: 8 }}>
+        <Button
+          secondary
+          icon="add_a_photo_outlined"
+          title={photos.length ? 'Weiteres Foto aufnehmen' : 'Foto aufnehmen'}
+          disabled={actions.busy}
+          onPress={() => void actions.pick('camera')}
+        />
+        <Button
+          secondary
+          icon="photo_library_outlined"
+          title="Fotos aus Galerie hinzufügen"
+          disabled={actions.busy}
+          onPress={() => void actions.pick('gallery')}
+        />
+      </View>
     </Card>
   );
 }
@@ -326,86 +333,91 @@ export function Documents({
     if (action === 'replace') await add(a.id);
   }
   return (
-    <Card style={{ padding: 14, overflow: 'visible' }}>
-      <Body strong style={{ fontSize: 16 }}>
+    <Card style={{ margin: 4, padding: 13, gap: 0, overflow: 'visible' }}>
+      <Body
+        strong
+        style={{ fontSize: 16, lineHeight: 24, letterSpacing: 0.15 }}
+      >
         Aktuelle PDFs ({documents.length})
       </Body>
-      {!!documents.length && (
-        <Body>
-          {documents.reduce((n, a) => n + (a.pages ?? 0), 0)} PDF-Seiten ·{' '}
-          {(documents.reduce((n, a) => n + a.size, 0) / 1000000).toFixed(1)} MB
-        </Body>
-      )}
-      {actions && <Body muted>Maximal 50 MB je PDF</Body>}
+      <Body style={{ marginTop: 6 }}>
+        {documents.reduce((n, a) => n + (a.pages ?? 0), 0)} PDF-Seiten ·{' '}
+        {(documents.reduce((n, a) => n + a.size, 0) / 1000000).toFixed(1)} MB
+      </Body>
+      {actions && <Body>Maximal 50 MB je PDF</Body>}
       {documents.length > 1 && actions && (
-        <Body>
+        <Body style={{ marginTop: 6 }}>
           Zum Sortieren eine PDF länger gedrückt halten und verschieben.
         </Body>
       )}
-      {!documents.length ? (
-        <Body>Keine aktuellen PDF-Dokumente</Body>
-      ) : (
-        <Sortable
-          items={documents}
-          onReorder={actions?.reorder}
-          disabled={actions?.busy}
-          render={(a, index, canTap) => (
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 12,
-                minHeight: 64,
-              }}
-            >
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`PDF ${a.name} öffnen`}
-                disabled={actions?.busy}
-                onPress={() => {
-                  if (canTap())
-                    router.push({
-                      pathname: '/pdf/[id]',
-                      params: { id: a.id },
-                    });
-                }}
+      <View style={{ marginTop: 10 }}>
+        {!documents.length ? (
+          <Body>Keine aktuellen PDFs</Body>
+        ) : (
+          <Sortable
+            items={documents}
+            onReorder={actions?.reorder}
+            disabled={actions?.busy}
+            render={(a, index, canTap) => (
+              <View
                 style={{
-                  flex: 1,
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: 12,
-                  paddingVertical: 8,
+                  minHeight: 64,
                 }}
               >
-                <Icon name="description_outlined" color={c.primary} />
-                <View style={{ flex: 1, gap: 4 }}>
-                  <Body style={{ fontSize: 16 }}>{a.name}</Body>
-                  <Body muted>
-                    {a.pages} {a.pages === 1 ? 'Seite' : 'Seiten'}
-                  </Body>
-                </View>
-              </Pressable>
-              {actions && (
-                <IconButton
-                  icon="more_vert"
-                  menu
-                  label={`Dokument ${index + 1} bearbeiten`}
-                  disabled={actions.busy}
-                  onPress={(anchor) => void menu(a, index, anchor)}
-                />
-              )}
-            </View>
-          )}
-        />
-      )}
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`PDF ${a.name} öffnen`}
+                  disabled={actions?.busy}
+                  onPress={() => {
+                    if (canTap())
+                      router.push({
+                        pathname: '/pdf/[id]',
+                        params: { id: a.id },
+                      });
+                  }}
+                  style={{
+                    flex: 1,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 12,
+                    paddingVertical: 8,
+                  }}
+                >
+                  <Icon name="description_outlined" color={c.primary} />
+                  <View style={{ flex: 1, gap: 4 }}>
+                    <Body style={{ fontSize: 16 }}>{a.name}</Body>
+                    <Body muted>
+                      {a.pages} {a.pages === 1 ? 'Seite' : 'Seiten'}
+                    </Body>
+                  </View>
+                </Pressable>
+                {actions && (
+                  <IconButton
+                    icon="more_vert"
+                    menu
+                    label={`Dokument ${index + 1} bearbeiten`}
+                    disabled={actions.busy}
+                    onPress={(anchor) => void menu(a, index, anchor)}
+                  />
+                )}
+              </View>
+            )}
+          />
+        )}
+      </View>
       {actions && (
-        <Button
-          secondary
-          icon="upload_file_outlined"
-          title="PDF hinzufügen oder scannen"
-          disabled={actions.busy}
-          onPress={() => void add()}
-        />
+        <View style={{ marginTop: 12 }}>
+          <Button
+            secondary
+            icon="upload_file_outlined"
+            title="PDF hinzufügen oder scannen"
+            disabled={actions.busy}
+            onPress={() => void add()}
+          />
+        </View>
       )}
     </Card>
   );

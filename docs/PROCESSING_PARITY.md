@@ -435,3 +435,28 @@ Integration nach [ScrollView-Dokumentation](https://gorhom.dev/react-native-bott
 und [Gestenoptionen](https://gorhom.dev/react-native-bottom-sheet/props).
 Version und transitive Abhängigkeiten stehen im Lockfile. Andere Auswahlflächen,
 Formularentwürfe und Geschäftslogik wurden für diese Aufgabe nicht geändert.
+
+## Fotoformular und Fotomenü vom 27.09.2026
+
+Referenz sind die vier Smartphone-Screenshots von 19:53/19:54 und die aktuelle
+`reading_photo_gallery.dart`. Kleine Darstellungsänderungen gleichen das
+Aktivitätsfeld, die Foto-/PDF-Karten und das Fotomenü an diese Vorlage an.
+Das Foto wird weiterhin vollständig im 4:3-Vorschaubereich gezeigt, jetzt ohne
+zusätzliche dunkle Hintergrundfläche. Karten erhalten den Außenabstand der
+Flutter-Vorlage. Überschriften, Foto, Beschriftungszeile und Aufnahme-/Galeriebuttons
+verwenden deren Abstände. Foto- und PDF-Karte folgen unmittelbar aufeinander.
+
+„Aktivität“ trägt wie die Vorlage kein Sternchen. Die Pflichtfeldprüfung bleibt
+unverändert. Nur für diesen Vorschlagstext werden Zeilenhöhe und Laufweite
+angepasst. Die PDF-Karte zeigt ihre tatsächlichen Seiten-/Dateigrößenzähler auch
+bei null Dokumenten. Hausakte behält die realen 50 MB je Datei. Die abweichenden
+Fahrzeugakte-Grenzen werden nicht als rein visuelle Beschriftung übernommen.
+
+Das Fotomenü erhält eine gezielte schlichte Darstellung mit normaler Schrift,
+14 Punkten, 48 Punkten Mindestzeilenhöhe, kompakten Abständen und Ausrichtung
+am Dreipunkt-Button. Keine Symbole oder rote Hervorhebung beim Entfernen.
+Bei einem Foto zeigt es wie der Fahrzeugakte-Screenshot ausschließlich Ersetzen
+und Entfernen. Ab zwei Fotos sind die Verschiebeaktionen sichtbar. Am Anfang
+beziehungsweise Ende sind nicht ausführbare Richtungen grau und deaktiviert.
+Das Foto wird dadurch weder ersetzt noch entfernt, solange keine entsprechende
+Aktion gewählt wird. Andere Menüdarstellungen bleiben erhalten.

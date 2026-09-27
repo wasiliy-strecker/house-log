@@ -534,3 +534,30 @@ Die weitere persönliche Bedienabnahme übernimmt der Nutzer. Fahrzeugakte und
 Emulator wurden nicht verändert, kein Datensatz gespeichert oder gelöscht.
 
 APK: `build/releases/dev/Hausakte-Dev-1.0.0-1-photo-sheet-20260927-1936.apk`.
+
+## Kleine visuelle Anpassungen des Fotoformulars vom 27.09.2026
+
+Die vier Smartphone-Screenshots von 19:53/19:54 wurden angesehen und mit der
+aktuellen Flutter-Implementierung verglichen. Änderungen betreffen das
+Aktivitätslabel und seinen Hilfstext, Kartenabstände, Fotohintergrund,
+PDF-Leerzustand und das schlichte Foto-Kontextmenü. Pflichtfeldvalidierung,
+Dateigrenzen und Anhänge werden fachlich nicht geändert.
+
+ESLint und TypeScript strict bestanden. Der Selektor des bestehenden manuellen
+Android-Smoke-Skripts wurde an „Aktivität“ angepasst. Keine umfangreiche Testsuite
+und kein neuer Datensatz für diese Darstellungsänderung.
+
+Manuelle Abnahme: Vorhandenen Erfassungsentwurf mit einem Foto öffnen. Das Foto
+muss ohne zusätzliche dunkle Fläche erscheinen. Im Dreipunkt-Menü stehen nur
+„Foto ersetzen“ und „Foto entfernen“. Bei mehreren Fotos sind „Nach vorne“ am
+Anfang und „Nach hinten“ am Ende grau und nicht auswählbar. Kartenabstände und
+PDF-Zähler bei null Dokumenten mit den Referenzbildern vergleichen.
+
+Formatprüfung und Preview-Build bestanden. Paket, Version, Release-Eigenschaft,
+Installer und Signatur vor dem datenbewahrenden Update auf HONOR geprüft.
+Installation erfolgreich, App-Prozess gestartet. Das Gerät war gesperrt, deshalb
+wurde die geänderte Darstellung in dieser Aufgabe nicht erneut auf Android
+bedient oder visuell abgenommen. Diese Prüfung übernimmt der Nutzer.
+Keine Änderungen an Fahrzeugakte und kein Update des Emulators.
+
+APK: `build/releases/dev/Hausakte-Dev-1.0.0-1-photo-visual-20260927-2001.apk`.
