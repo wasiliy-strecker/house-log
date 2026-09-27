@@ -1,11 +1,18 @@
-import { useState } from 'react';
-import { Modal, ScrollView, View } from 'react-native';
+import { useCallback, useRef, useState } from 'react';
+import { Modal, Text, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import BottomSheet, {
+  BottomSheetBackdrop,
+  BottomSheetHandle,
+  BottomSheetScrollView,
+  type BottomSheetBackdropProps,
+  type BottomSheetHandleProps,
+} from '@gorhom/bottom-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Body,
   Button,
   Card,
-  Heading,
   IconButton,
   useTheme,
 } from '../../core/ui/components';
@@ -32,10 +39,43 @@ const hints: { title: string; icon: IconName; text: string }[] = [
     text: 'Fotografiere die Anzeige. Den abgelesenen Wert und seine Einheit trägst du selbst in das Formular ein.',
   },
 ];
+const snapPoints = ['70%', '95%'];
+function HintsBackdrop(props: BottomSheetBackdropProps) {
+  return (
+    <BottomSheetBackdrop
+      {...props}
+      appearsOnIndex={0}
+      disappearsOnIndex={-1}
+      opacity={0.4}
+      pressBehavior="close"
+      accessibilityLabel="Fotohinweise schließen"
+      accessibilityHint="Schließt die Fotohinweise und kehrt zum Eintrag zurück."
+    />
+  );
+}
+function HintsHandle(props: BottomSheetHandleProps) {
+  const c = useTheme();
+  return (
+    <BottomSheetHandle
+      {...props}
+      accessibilityLabel="Fotohinweise verschieben"
+      accessibilityHint="Nach oben ziehen zum Vergrößern. Nach unten ziehen zum Schließen."
+      style={{ paddingTop: 22, paddingBottom: 22 }}
+      indicatorStyle={{
+        width: 32,
+        height: 4,
+        borderRadius: 4,
+        backgroundColor: c.muted,
+      }}
+    />
+  );
+}
 export function PhotoHints({ disabled }: { disabled: boolean }) {
-  const [open, setOpen] = useState(false),
-    c = useTheme(),
-    safe = useSafeAreaInsets();
+  const [open, setOpen] = useState(false);
+  const sheet = useRef<BottomSheet>(null);
+  const c = useTheme();
+  const safe = useSafeAreaInsets();
+  const close = useCallback(() => sheet.current?.forceClose(), []);
   return (
     <>
       <Button
@@ -48,71 +88,80 @@ export function PhotoHints({ disabled }: { disabled: boolean }) {
       <Modal
         visible={open}
         transparent
-        animationType="slide"
+        animationType="none"
         statusBarTranslucent
-        onRequestClose={() => setOpen(false)}
+        onRequestClose={close}
       >
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'flex-end',
-            backgroundColor: '#00000066',
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: c.elevated,
-              height: '75%',
-              borderTopLeftRadius: 28,
-              borderTopRightRadius: 28,
-              paddingTop: 16,
-            }}
-          >
-            <View
-              style={{
-                height: 4,
-                width: 32,
-                borderRadius: 4,
-                backgroundColor: c.outline,
-                alignSelf: 'center',
-                marginBottom: 12,
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          {open && (
+            <BottomSheet
+              ref={sheet}
+              index={0}
+              snapPoints={snapPoints}
+              enableDynamicSizing={false}
+              enablePanDownToClose
+              enableOverDrag={false}
+              topInset={safe.top}
+              onClose={() => setOpen(false)}
+              backdropComponent={HintsBackdrop}
+              handleComponent={HintsHandle}
+              backgroundStyle={{
+                backgroundColor: c.card,
+                borderTopLeftRadius: 28,
+                borderTopRightRadius: 28,
               }}
-            />
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 20,
-              }}
+              accessible={false}
+              accessibilityViewIsModal
             >
-              <View style={{ flex: 1 }}>
-                <Heading>Haus und Anlagen fotografieren</Heading>
-              </View>
-              <IconButton
-                icon="close"
-                label="Fotohinweise schließen"
-                onPress={() => setOpen(false)}
-              />
-            </View>
-            <ScrollView
-              contentContainerStyle={{
-                padding: 20,
-                paddingBottom: safe.bottom + 24,
-                gap: 12,
-              }}
-            >
-              {hints.map((h) => (
-                <Card key={h.title}>
-                  <Icon name={h.icon} size={36} color={c.primary} />
-                  <Body strong style={{ fontSize: 16 }}>
-                    {h.title}
-                  </Body>
-                  <Body>{h.text}</Body>
-                </Card>
-              ))}
-            </ScrollView>
-          </View>
-        </View>
+              {/* The integrated scroll view transfers the same gesture between
+                  content scrolling and sheet dragging at the content edges. */}
+              <BottomSheetScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{
+                  paddingHorizontal: 20,
+                  paddingBottom: safe.bottom + 24,
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Text
+                    accessibilityRole="header"
+                    style={{
+                      flex: 1,
+                      fontFamily: 'Roboto',
+                      fontSize: 22,
+                      lineHeight: 28,
+                      color: c.ink,
+                    }}
+                  >
+                    Haus und Anlagen fotografieren
+                  </Text>
+                  <IconButton
+                    icon="close"
+                    label="Fotohinweise schließen"
+                    onPress={close}
+                  />
+                </View>
+                {hints.map((h) => (
+                  <Card key={h.title} style={{ margin: 4, gap: 0 }}>
+                    <Icon name={h.icon} size={36} color={c.primary} />
+                    <Body
+                      style={{
+                        marginTop: 12,
+                        fontFamily: 'RobotoMedium',
+                        fontSize: 16,
+                        lineHeight: 24,
+                        letterSpacing: 0.15,
+                      }}
+                    >
+                      {h.title}
+                    </Body>
+                    <Body style={{ marginTop: 8 }}>{h.text}</Body>
+                  </Card>
+                ))}
+              </BottomSheetScrollView>
+            </BottomSheet>
+          )}
+        </GestureHandlerRootView>
       </Modal>
     </>
   );

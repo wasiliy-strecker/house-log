@@ -503,3 +503,34 @@ prüfen. Fremde Testsitzungen und die Flutter-Referenz wurden nicht verändert.
 
 Installierte APK:
 `build/releases/dev/Hausakte-Dev-1.0.0-1-pdf-cards-20260927-1901.apk`.
+
+## Fotohinweise als zusammenhängende Fläche vom 27.09.2026
+
+Die beiden Smartphone-Screenshots von 19:30 wurden angesehen. Referenz ist die
+Flutter-Implementierung `meter_photo_examples.dart` mit gemeinsamer Liste für
+Titel und Karten. Hausakte verwendet dafür jetzt eine integrierte Scrollfläche
+mit vergrößerbarer Höhe und Schließgeste.
+
+Formatprüfung, ESLint und TypeScript strict bestanden. Die neue Abhängigkeit
+`@gorhom/bottom-sheet` 5.2.14 ist exakt fixiert. `npm ls` bestätigt die Verwendung
+der vorhandenen Versionen von Gesture Handler und Reanimated ohne Konflikt.
+Auf Nutzerwunsch keine umfangreiche Testsuite und keine neuen Gesten-Mocktests.
+
+Manuelle Prüfschritte: Fotohinweise öffnen. Auf einer Karte nach oben ziehen,
+bis die Fläche groß ist und auch die Überschrift mitscrollt. Anschließend aus
+leicht gescrollter Position in einer durchgehenden Bewegung nach unten ziehen,
+bis die Fläche schließt. Erneut öffnen und prüfen, dass die Hinweise wieder
+oben beginnen. Schließen über X, Android-Zurück und den Hintergrund prüfen.
+Der Erfassungsentwurf soll dabei erhalten bleiben.
+
+Tatsächlich auf HONOR BVL-N49 mit Android 16 geprüft: eigenständigen Preview-Build
+nach Identitäts- und Signaturprüfung datenbewahrend installiert. Vorhandene Akte
+und gesicherter Erfassungsentwurf sind weiterhin vorhanden. Fotohinweise geöffnet,
+auf einer Karte nach oben gezogen und die mitgescrollte Überschrift kontrolliert.
+Aus dieser gescrollten Position schließt eine einzige Abwärtsgeste den Modal.
+Wiederöffnen setzt die Liste zurück. X-Button, Android-Zurück und Tippen auf den
+Hintergrund schließen ebenfalls korrekt.
+Die weitere persönliche Bedienabnahme übernimmt der Nutzer. Fahrzeugakte und
+Emulator wurden nicht verändert, kein Datensatz gespeichert oder gelöscht.
+
+APK: `build/releases/dev/Hausakte-Dev-1.0.0-1-photo-sheet-20260927-1936.apk`.

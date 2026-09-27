@@ -402,3 +402,36 @@ Es gibt keine Datenbankmigration und keine Änderung des Backupformats.
 Das Layout gilt ausschließlich für neu erzeugte Protokolle. Die PDF-Paginierung
 liegt app-lokal in `src/core/pdf/report-layout.ts`, die fachliche Zusammenstellung
 und Dateiprüfung im vorhandenen `PdfService`.
+
+## Zusammenhängend ziehbare Fotohinweise vom 27.09.2026
+
+Die Smartphone-Screenshots von 19:30 zeigen die Fotohinweise. Deren bisheriger
+Hausakte-Modal hatte eine feste Höhe, einen unbeweglichen Titel und nur einen
+Scrollbereich für die Karten. Der vorhandene Schließgriff der PDF-Auswahl war
+für diesen separaten Modal nicht zuständig.
+
+Die Fotohinweise verwenden jetzt `@gorhom/bottom-sheet` 5.2.14 mit seiner
+integrierten `BottomSheetScrollView`. Titel, Schließen-Button und alle vier Karten
+stehen in derselben scrollbaren Liste wie in `meter_photo_examples.dart` der
+Fahrzeugakte. Ziehen am Inhalt vergrößert zuerst die Fläche und scrollt danach
+weiter. Abwärtsbewegungen scrollen zum Anfang und ziehen dann dieselbe Fläche
+herunter, ohne eine zweite Geste vorauszusetzen. Griff, Schließen-Button,
+Android-Zurück und Tippen auf den Hintergrund bleiben alternative Schließwege.
+Beim erneuten Öffnen beginnt die Liste wieder oben.
+
+Die Anfangshöhe beträgt 70 Prozent, die maximale Höhe 95 Prozent des verfügbaren
+Bereichs. Die React-Native-Komponente rastet nach dem Loslassen an diesen Höhen
+oder geschlossen ein. Die Flutter-Vorlage kann zusätzlich auf Zwischenhöhen
+stehen bleiben. Die Übergabe zwischen Scrollen und Ziehen erfolgt über die
+integrierte Gestensteuerung. Safe Areas, große Schrift und die Systemeinstellung
+für reduzierte Bewegung werden berücksichtigt. Farbe, Griff, reguläre
+Titelschrift, Kartenabstände und mittlere Schriftstärke der Kartentitel wurden
+an die Referenz angepasst.
+
+Die Bibliothek bringt kein eigenes natives Android-Modul mit. Die geprüften
+[Peer-Abhängigkeiten der Version 5.2.14](https://github.com/gorhom/react-native-bottom-sheet/blob/v5.2.14/package.json)
+erlauben die vorhandenen Versionen Gesture Handler 2.32.0 und Reanimated 4.5.1.
+Integration nach [ScrollView-Dokumentation](https://gorhom.dev/react-native-bottom-sheet/components/bottomsheetscrollview)
+und [Gestenoptionen](https://gorhom.dev/react-native-bottom-sheet/props).
+Version und transitive Abhängigkeiten stehen im Lockfile. Andere Auswahlflächen,
+Formularentwürfe und Geschäftslogik wurden für diese Aufgabe nicht geändert.
