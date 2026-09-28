@@ -278,6 +278,7 @@ export function Documents({
   async function add(replaceId?: string) {
     const source = await feedback.choose({
       title: replaceId ? 'Dokument ersetzen' : 'PDF hinzufügen',
+      optionStyle: 'cards',
       options: [
         {
           value: 'pdf',

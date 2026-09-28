@@ -513,3 +513,11 @@ Dessen Karte zeigt deshalb den Aktennamen und den gespeicherten Modus. Eine
 heutige Eintragsanzahl wird nicht als Inhalt eines älteren Protokolls ausgegeben.
 PDF-Dateien, Datenbankschema und PDF-Seitenvorschau werden durch diese
 Darstellungsänderung nicht verändert.
+
+## PDF-Quelle als Karten vom 28.09.2026
+
+„PDF hinzufügen“ und „Dokument ersetzen“ verwenden für die Quellenwahl jetzt
+dieselbe vorhandene Kartenansicht wie die Auswahl des PDF-Protokollinhalts.
+„PDF auswählen“ und „Dokument scannen“ stehen jeweils in einer eigenen Karte
+mit Symbol, Erklärung und Pfeil. Auswahl, Abbruch, Wischgeste und die bestehenden
+Import- und Scannerabläufe bleiben unverändert.

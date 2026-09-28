@@ -615,3 +615,24 @@ ausgeführt werden und bleibt bei der Nutzerabnahme. Kein Datensatz gelöscht,
 keine neue PDF erzeugt und keine Flutter-App geändert.
 
 APK: `build/releases/dev/Hausakte-Dev-1.0.0-1-report-cards-20260928-0748.apk`.
+
+## Karten für PDF-Auswahl und Scan vom 28.09.2026
+
+Gezielte Darstellungsänderung über `optionStyle: 'cards'` in der bestehenden
+Quellenauswahl. Manuelle Abnahme: Im Eintragsformular „PDF hinzufügen oder scannen“
+öffnen. „PDF auswählen“ und „Dokument scannen“ müssen als zwei Karten erscheinen.
+Auswahl schließen und erneut öffnen. Auch bei „Dokument ersetzen“ dieselbe
+Kartenansicht prüfen. Vorhandene Anhänge und Formulareingaben sollen erhalten
+bleiben. Import- und Scannerfunktionen werden nicht neu implementiert.
+
+Formatprüfung, ESLint, TypeScript strict und Preview-Build bestanden.
+Nach Paket-, Versions-, Installer- und Signaturprüfung datenbewahrend auf HONOR
+installiert. Tatsächlich auf Android geprüft: Der vorhandene Bearbeitungsentwurf
+wurde mit sechs Fotos wiederhergestellt. „PDF hinzufügen“ zeigt beide Optionen
+als getrennte Karten mit Symbol, Erklärung und Pfeil. Darstellung per Screenshot
+angesehen. Android-Zurück schließt die Auswahl und erhält die sichtbaren Eingaben.
+Anschließend erneut geöffnet und für den Nutzer stehen gelassen. Keine Datei
+importiert oder gescannt, kein Eintrag gespeichert oder verworfen. Der Ersetzen-Pfad
+verwendet denselben Dialog, wurde in dieser kurzen Abnahme nicht separat bedient.
+
+APK: `build/releases/dev/Hausakte-Dev-1.0.0-1-pdf-source-cards-20260928-2120.apk`.
