@@ -6,6 +6,8 @@ Build und Expo Router. Kostenlos, ohne Konto, Werbung, eigene Analytics oder Clo
 Der optionale Google-Scanner verarbeitet Dokumente lokal. Seine technischen
 Google-Metriken sind in der lokalen Datenschutzerklärung offengelegt.
 
+GitHub-Repository: [wasiliy-strecker/house-log](https://github.com/wasiliy-strecker/house-log).
+
 ## Funktionen
 
 Flache Aktenliste mit Stammdaten, Standort, Hersteller, Modell, Seriennummer und
