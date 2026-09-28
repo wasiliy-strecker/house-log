@@ -588,3 +588,30 @@ Behauptung einer ausgeführten visuellen Abnahme der neuen Verlaufskarten.
 Fahrzeugakte und gespeicherte Einträge wurden nicht bearbeitet.
 
 APK: `build/releases/dev/Hausakte-Dev-1.0.0-1-history-cards-20260928-0733.apk`.
+
+## Protokollbereich nach Screenshot-Vorlage vom 28.09.2026
+
+Die beiden Smartphone-Screenshots von 07:38 und die zugehörigen Flutter-Karten
+wurden verglichen. Formatprüfung, ESLint und TypeScript strict bestanden.
+Keine umfangreiche Testsuite auf Nutzerwunsch. Die Dokumente selbst werden bei
+dieser UI-Änderung nicht neu erzeugt oder überschrieben.
+
+Manuelle Abnahme: Vorhandenen Eintrag mit gespeichertem Einzelprotokoll öffnen.
+Überschrift vor der Erstellen-Karte, Erklärungstext, PDF-Symbol, gedämpfte
+Kartenfarbe und gespeicherte Karte mit Erstellungsdatum, Eintragszusammenfassung,
+Modus und Speicherstatus vergleichen. Vorhandene PDF öffnen und zurückkehren.
+Löschdialog öffnen und abbrechen. In der Akte die Sektion mit Gesamtprotokollen
+auf- und zuklappen. Dateien erst nach der Verfügbarkeitsprüfung als gespeichert
+kennzeichnen. Zusätzlich fehlende Datei, Ladefehler mit Wiederholen, mehr als
+zehn Protokolle, große Systemschrift und Hellmodus bei Bedarf prüfen.
+
+Preview-Build bestanden. Auf dem HONOR-Smartphone wurden Dev-Paket, Version,
+nicht debuggbarer Preview-Modus, Installer und übereinstimmende Signatur geprüft.
+Das Update wurde mit den datenbewahrenden Installationsflags erfolgreich
+installiert und Hausakte gestartet. Vorher war der vorhandene Eintrag geöffnet.
+Während des Builds sperrte sich das Smartphone wieder. Die angekündigte kurze
+Bedienkontrolle von Karten, PDF-Öffnen und Löschabbruch konnte deshalb nicht
+ausgeführt werden und bleibt bei der Nutzerabnahme. Kein Datensatz gelöscht,
+keine neue PDF erzeugt und keine Flutter-App geändert.
+
+APK: `build/releases/dev/Hausakte-Dev-1.0.0-1-report-cards-20260928-0748.apk`.

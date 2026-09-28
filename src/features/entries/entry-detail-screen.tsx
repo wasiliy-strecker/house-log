@@ -11,7 +11,7 @@ import {
 } from '../../core/ui/components';
 import { money } from '../../core/domain/models';
 import { dateTime, entrySummary } from '../records/presentation-model';
-import { Reports } from '../records/record-screens';
+import { Reports } from '../records/reports';
 import { PhotoGallery, Documents } from '../media/attachments';
 import { useEntryDetail } from './use-entry-detail';
 export function EntryDetailScreen() {
@@ -88,6 +88,7 @@ export function EntryDetailScreen() {
         recordId={e.recordId}
         entryId={e.id}
         hasAttachments={!!e.attachments.length}
+        summary={entrySummary(e)}
       />
     </Page>
   );

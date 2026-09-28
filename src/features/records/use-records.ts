@@ -204,18 +204,27 @@ export function useReports(
   const feedback = useFeedback();
   const task = useTask();
   const [reports, setReports] = useState<SavedReport[]>([]),
-    [offset, setOffset] = useState(0);
-  const { setError } = task;
+    [offset, setOffset] = useState(0),
+    [expanded, setExpanded] = useState(false),
+    [availableFiles, setAvailableFiles] = useState<Set<string> | null>(null),
+    [loadError, setLoadError] = useState(''),
+    [attempt, setAttempt] = useState(0),
+    [deletingId, setDeletingId] = useState<string>();
   useFocusEffect(
     useCallback(() => {
       let active = true;
       setLoading(true);
-      house.repository
-        .reports(recordId)
-        .then((rows) => {
+      setLoadError('');
+      setAvailableFiles(null);
+      Promise.all([
+        house.repository.reports(recordId),
+        entryId || expanded ? house.vault.list() : Promise.resolve(null),
+      ])
+        .then(([rows, files]) => {
           if (active) {
             const filtered = rows.filter((r) => r.entryId === entryId);
             setReports(filtered);
+            setAvailableFiles(files ? new Set(files) : null);
             setOffset((old) =>
               old >= filtered.length
                 ? Math.max(
@@ -227,7 +236,7 @@ export function useReports(
           }
         })
         .catch((e) => {
-          if (active) setError(errorText(e));
+          if (active) setLoadError(errorText(e));
         })
         .finally(() => {
           if (active) setLoading(false);
@@ -237,10 +246,17 @@ export function useReports(
       };
       // Revision/retry tokens intentionally reload persisted data on focus.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [house, recordId, entryId, revision, setError]),
+    }, [house, recordId, entryId, revision, expanded, attempt]),
   );
   return {
     ...task,
+    loading,
+    loadError,
+    expanded,
+    setExpanded,
+    availableFiles,
+    deletingId,
+    retry: () => setAttempt((n) => n + 1),
     reports: reports.slice(offset, offset + PAGE_SIZE),
     total: reports.length,
     offset,
@@ -293,9 +309,14 @@ export function useReports(
         )
       )
         await task.run(async () => {
-          await house.delete('report', report.id);
-          refresh();
-          feedback.notify('Hausprotokoll gelöscht.');
+          setDeletingId(report.id);
+          try {
+            await house.delete('report', report.id);
+            refresh();
+            feedback.notify('Hausprotokoll gelöscht.');
+          } finally {
+            setDeletingId(undefined);
+          }
         });
     },
   };

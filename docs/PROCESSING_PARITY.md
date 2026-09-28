@@ -483,3 +483,33 @@ Eintragsdetails zugänglich, statt die kompakte Verlaufskarte zu verlängern.
 Kartenabstände und Eintragszähler folgen der Vorlage, einschließlich „1 Treffer“.
 Die Seitengröße bleibt zehn. Dateipfade werden im View-Model über den FileVault-Port
 aufgelöst. Die Kartenkomponente führt keine Datei- oder Datenbankoperationen aus.
+
+## Protokollkarten vom 28.09.2026
+
+Die zwei Smartphone-Screenshots von 07:38 zeigen den Protokollbereich im Eintrag.
+Referenzen sind `_SinglePdfAction`, `_HistoryPdfAction`, `EvidenceExportCard`
+und `SavedHistoryPdfs`. Die gemeinsame Hausakte-Darstellung steht jetzt in
+`features/records/reports.tsx`. Die Überschrift im Eintrag steht vor der
+Erstellen-Karte. Farben, PDF-Symbole, Abstände, Kartentitel, rote Löschaktion
+und Kennzeichnung „Lokal gespeichert“ folgen der Flutter-Vorlage.
+
+Die Material-Farben `secondaryContainer`, `onSecondaryContainer` und die
+Fehlerfarben wurden aus dem installierten Flutter-Farbschema mit Seed `#315E80`,
+Tonal-Spot-Variante und Kontraststufe null für Hell und Dunkel berechnet.
+Sie ersetzen in diesen Karten die bisherige primäre Akzentfläche.
+Die Erklärungstexte beschreiben die Auswahl kompakt oder mit Anhängen sowie
+Speichern, Drucken und Teilen. Ein gespeichertes Einzelprotokoll nennt wie
+Fahrzeugakte die aktuelle Eintragszusammenfassung und seinen gespeicherten Modus.
+
+Gesamtprotokolle stehen in einer zunächst eingeklappten Sektion mit Anzahl.
+Der FileVault-Port liefert die vorhandenen Dateien. Vor Abschluss der Prüfung
+erscheint kein behaupteter Speicherstatus. Fehlende Dateien werden als fehlend
+gekennzeichnet und lassen sich nicht öffnen. Ladefehler bieten Wiederholen.
+Die bestehende Prüfsummenprüfung beim tatsächlichen PDF-Öffnen bleibt erhalten.
+Bei eingeklappter Sektion erfolgt keine Dateiprüfung. Die Seitengröße bleibt zehn.
+
+Hausakte speichert bisher keine historische Eintragsanzahl je Gesamtprotokoll.
+Dessen Karte zeigt deshalb den Aktennamen und den gespeicherten Modus. Eine
+heutige Eintragsanzahl wird nicht als Inhalt eines älteren Protokolls ausgegeben.
+PDF-Dateien, Datenbankschema und PDF-Seitenvorschau werden durch diese
+Darstellungsänderung nicht verändert.

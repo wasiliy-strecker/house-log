@@ -4,7 +4,6 @@ import {
   Body,
   Button,
   Busy,
-  BusyOverlay,
   Card,
   Field,
   Heading,
@@ -17,8 +16,9 @@ import {
 } from '../../core/ui/components';
 import { Icon, categoryIcon } from '../../core/ui/icon';
 import { useFeedback } from '../../core/ui/feedback';
-import { useRecords, useRecordDetail, useReports } from './use-records';
+import { useRecords, useRecordDetail } from './use-records';
 import { HistoryTile } from './history-tile';
+import { Reports } from './reports';
 import {
   dateTime,
   entrySummary,
@@ -292,73 +292,6 @@ export function Pager({
     </View>
   ) : null;
 }
-export function Reports({
-  recordId,
-  entryId = null,
-  hasAttachments,
-}: {
-  recordId: string;
-  entryId?: string | null;
-  hasAttachments: boolean;
-}) {
-  const vm = useReports(recordId, entryId, hasAttachments),
-    c = useTheme();
-  return (
-    <View style={{ gap: 10 }}>
-      <Card style={{ backgroundColor: c.soft }}>
-        <View
-          style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}
-        >
-          <Icon name="description_outlined" color={c.onSoft} />
-          <View style={{ flex: 1, gap: 4 }}>
-            <Body strong style={{ color: c.onSoft }}>
-              Hausprotokoll {entryId ? 'dieses Eintrags' : 'der gesamten Akte'}
-            </Body>
-            <Body style={{ color: c.onSoft }}>
-              Einträge und Unterlagen als gespeichertes PDF zusammenstellen.
-            </Body>
-          </View>
-        </View>
-        <Button
-          icon="description_outlined"
-          title="Hausprotokoll als PDF erstellen"
-          disabled={vm.busy}
-          onPress={() => void vm.create()}
-        />
-      </Card>
-      <Notice error text={vm.error} />
-      <Body strong>Gespeicherte Hausprotokolle ({vm.total})</Body>
-      {!vm.total && <Body muted>Noch keine Hausprotokolle gespeichert.</Body>}
-      {vm.reports.map((r) => (
-        <Card key={r.id} onPress={() => vm.open(r)} style={{ padding: 14 }}>
-          <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-            <Icon name="description_outlined" color={c.primary} />
-            <View style={{ flex: 1, gap: 4 }}>
-              <Body strong>
-                {entryId ? 'Einzelner Eintrag' : 'Gesamte Akte'}
-              </Body>
-              <Body muted>
-                {r.full
-                  ? 'Mit Fotos und PDF-Dokumenten'
-                  : 'Kompakt ohne Anhänge'}
-                {'\n'}
-                {dateTime(r.createdAt)}
-              </Body>
-            </View>
-            <IconButton
-              icon="delete_outline"
-              label="Protokoll löschen"
-              onPress={() => void vm.remove(r)}
-            />
-            <Icon name="chevron_right" />
-          </View>
-        </Card>
-      ))}
-      <Pager offset={vm.offset} total={vm.total} onChange={vm.setOffset} />
-      <BusyOverlay visible={vm.busy} label="Hausprotokoll wird verarbeitet …" />
-    </View>
-  );
-}
 export function RecordDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const vm = useRecordDetail(id),
@@ -478,7 +411,11 @@ export function RecordDetailScreen() {
       </View>
       <Notice error text={vm.error} />
       {vm.total > 0 && (
-        <Reports recordId={id} hasAttachments={vm.hasAttachments} />
+        <Reports
+          recordId={id}
+          hasAttachments={vm.hasAttachments}
+          summary={r.name}
+        />
       )}
       <View style={{ marginTop: vm.total > 0 ? 6 : 18, gap: 8 }}>
         <Heading>Aktenverlauf</Heading>
