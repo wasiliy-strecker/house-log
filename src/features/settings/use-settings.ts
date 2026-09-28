@@ -5,17 +5,35 @@ import { useFeedback } from '../../core/ui/feedback';
 import { useLeaveGuard } from '../../core/ui/use-leave-guard';
 import { errorText } from '../../core/ui/components';
 import type { PreparedBackup } from '../../core/media/media-service';
+import { privacyUrl, projectUrl } from './project-links';
 export function useSettings(
   askPassword: (confirm: boolean) => Promise<string | null>,
 ) {
-  const { backup, media, refresh } = useServices();
+  const { backup, media, links, refresh } = useServices();
   const task = useTask(),
     feedback = useFeedback();
   const [phase, setPhase] = useState('');
   useLeaveGuard({ dirty: false, busy: task.busy, discard: async () => {} });
+  async function openLink(url: string, failureMessage: string) {
+    try {
+      await links.open(url);
+    } catch {
+      feedback.notify(failureMessage);
+    }
+  }
   return {
     ...task,
     phase,
+    openPrivacy: () =>
+      openLink(
+        privacyUrl,
+        'Die Datenschutzerklärung konnte nicht geöffnet werden. Bitte versuche es erneut.',
+      ),
+    openSource: () =>
+      openLink(
+        projectUrl,
+        'Der Quellcode konnte nicht geöffnet werden. Bitte versuche es erneut.',
+      ),
     create: async () => {
       const password = await askPassword(true);
       if (password === null) return;

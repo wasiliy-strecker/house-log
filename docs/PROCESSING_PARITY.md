@@ -553,3 +553,30 @@ Ein abgelaufener Timer kann keine neuere Meldung schließen.
 Auf Nutzerwunsch erhält die Titelzeile „Haus und Anlagen fotografieren“ zwölf
 zusätzliche Punkte Abstand nach unten. Zusammen mit dem Kartenrand entsteht
 ein Abstand von 16 Punkten zur ersten Karte, auch bei umgebrochener Überschrift.
+
+## Backup-Auswahl und Datenschutz vom 28.09.2026
+
+Die Wiederherstellung übernimmt den Android-Filter der aktuellen Fahrzeugakte:
+`application/octet-stream` entspricht dem beim Hausakte-Export verwendeten
+Dateityp. PDFs, Bilder und andere bekannte Dokumenttypen werden dadurch nicht
+als gültige Auswahl angeboten. Android filtert nach MIME-Typ, nicht nach der
+benutzerdefinierten Endung. Andere unbekannte Binärdateien können deshalb je
+nach Dateianbieter weiterhin auswählbar sein. Die zusätzliche Prüfung akzeptiert
+nur `.habackup`, unabhängig von Groß- und Kleinschreibung. Format-, Passwort-
+und Inhaltsprüfung vor der Wiederherstellung bleiben erhalten.
+
+Datenschutzkarte, Kontaktangabe, Außenabstände und externer Datenschutz-Link
+folgen der Fahrzeugakte. Die bisherige lokale Datenschutzroute entfällt.
+Die vollständige Erklärung steht in `PRIVACY.md` und übernimmt Aufbau und
+gemeinsame Texte der Vorlage. Hausfelder, Entwürfe, Druckfunktion, Backup-Endung
+und Android-Entwicklungsversion entsprechen der tatsächlichen Hausakte.
+Unzutreffende Aussagen über Fahrzeug-Altdaten, einen Browser-Datenspeicher oder
+fehlende Internetberechtigung wurden nicht übertragen. Google-Hinweise wurden
+mit den verlinkten offiziellen ML-Kit-Informationen abgeglichen.
+
+Die Links öffnen das eigene öffentliche Hausakte-Repository über einen
+austauschbaren Geräte-Port. Fehler beim Öffnen erscheinen als Snackbar.
+Da Hausakte bisher keine Lizenzdatei besitzt, behauptet der Quellcode-Link
+keine MPL-2.0-Lizenz. Auf ausdrückliche Freigabe wurde ausschließlich `PRIVACY.md`
+im öffentlichen Repository veröffentlicht. Die übrigen lokalen Änderungen
+wurden nicht hochgeladen.

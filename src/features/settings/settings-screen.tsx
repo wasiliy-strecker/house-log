@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { Modal, Pressable, ScrollView, View } from 'react-native';
-import { router } from 'expo-router';
 import {
   ActionRow,
   Body,
@@ -192,37 +191,61 @@ export function SettingsScreen() {
       <View style={{ marginTop: 6 }}>
         <Heading>Datenschutz</Heading>
       </View>
-      <Card style={{ padding: 18 }}>
+      <Card style={{ padding: 18, gap: 0 }}>
         <Body>
           Fotos, Einträge und PDFs werden lokal auf deinem Gerät verarbeitet.
-          Die App überträgt deine Akten nicht an einen eigenen Server.
+          Die App überträgt deine Hausdaten nicht an einen Server.
         </Body>
-        <Body>
+        <Body style={{ marginTop: 10 }}>
           Deine Daten bleiben lokal auf deinem Gerät gespeichert, bis du sie in
           der App löschst oder die App-Daten entfernst.
         </Body>
-        <Body muted>
-          Der optionale Google-Dokumentscanner verarbeitet Dokumente lokal.
-          Technische Google-Metriken sind in der Datenschutzerklärung erläutert.
+        <Body muted style={{ marginTop: 10 }}>
+          Entwickler und Datenschutzkontakt{'\n'}
+          Wasiliy Strecker · AppFabrik AI
         </Body>
-        <Button
-          secondary
-          icon="description_outlined"
-          title="Datenschutzerklärung öffnen"
-          disabled={vm.busy}
-          onPress={() => router.push('/privacy')}
-        />
+        <View style={{ marginTop: 14 }}>
+          <Button
+            secondary
+            icon="open_in_new"
+            title="Datenschutzerklärung öffnen"
+            disabled={vm.busy}
+            onPress={() => void vm.openPrivacy()}
+          />
+        </View>
       </Card>
       <View style={{ marginTop: 6 }}>
         <Heading>Über Hausakte</Heading>
       </View>
-      <Card style={{ padding: 18 }}>
-        <Body strong>Hausakte 1.0.0</Body>
-        <Body muted>Kostenlos. Ohne Konto. Ohne Werbung.</Body>
-        <Body muted>
-          Eigenständige lokale Android-App. Backups bis 128 MB. Formularentwürfe
-          gehören nicht zum Backup.
-        </Body>
+      <Card style={{ padding: 0, gap: 0 }}>
+        <View style={{ padding: 18, gap: 12 }}>
+          <Body strong>Hausakte 1.0.0</Body>
+          <Body muted>Kostenlos. Ohne Konto. Ohne Werbung.</Body>
+          <Body muted>
+            Eigenständige lokale Android-App. Backups bis 128 MB.
+            Formularentwürfe gehören nicht zum Backup.
+          </Body>
+        </View>
+        <View style={{ height: 1, backgroundColor: c.border }} />
+        <Pressable
+          accessibilityRole="link"
+          disabled={vm.busy}
+          onPress={() => void vm.openSource()}
+          style={{
+            paddingHorizontal: 16,
+            paddingVertical: 14,
+            flexDirection: 'row',
+            gap: 16,
+            alignItems: 'center',
+          }}
+        >
+          <Icon name="code" />
+          <View style={{ flex: 1, gap: 4 }}>
+            <Body style={{ fontSize: 16 }}>Quellcode auf GitHub</Body>
+            <Body muted>Öffentliches Projekt-Repository</Body>
+          </View>
+          <Icon name="open_in_new" />
+        </Pressable>
       </Card>
       <BusyOverlay visible={!!vm.phase} label={vm.phase} />
       {prompt && (

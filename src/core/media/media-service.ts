@@ -202,7 +202,9 @@ export class ExpoMedia implements MediaPort {
   }
   async pickBackup() {
     const result = await DocumentPicker.getDocumentAsync({
-      type: '*/*',
+      // Android providers store the custom .habackup extension as binary data.
+      // Keep the extension check below because other binary files share this MIME.
+      type: 'application/octet-stream',
       multiple: false,
       copyToCacheDirectory: true,
     });

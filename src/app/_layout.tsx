@@ -104,7 +104,6 @@ function Routes() {
         <Stack.Screen name="entry/[id]" options={{ title: 'Eintrag' }} />
         <Stack.Screen name="pdf/[id]" options={{ title: 'Hausprotokoll' }} />
         <Stack.Screen name="settings" options={{ title: 'Einstellungen' }} />
-        <Stack.Screen name="privacy" options={{ title: 'Datenschutz' }} />
       </Stack>
     </NavigationThemeProvider>
   );

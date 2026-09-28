@@ -4,9 +4,16 @@ Eigenständige Android-App für Wartungen, Reparaturen, Renovierungen und Unterl
 zu Häusern, Wohnungen und Anlagen. React Native, TypeScript strict, Expo Development
 Build und Expo Router. Kostenlos, ohne Konto, Werbung, eigene Analytics oder Cloud.
 Der optionale Google-Scanner verarbeitet Dokumente lokal. Seine technischen
-Google-Metriken sind in der lokalen Datenschutzerklärung offengelegt.
+Google-Metriken sind in der [Datenschutzerklärung](PRIVACY.md) offengelegt.
 
 GitHub-Repository: [wasiliy-strecker/house-log](https://github.com/wasiliy-strecker/house-log).
+
+Die Datenschutzhinweise in den Einstellungen folgen der Fahrzeugakte.
+„Datenschutzerklärung öffnen“ verweist auf die öffentliche
+[Datenschutzerklärung](https://github.com/wasiliy-strecker/house-log/blob/main/PRIVACY.md)
+im eigenen GitHub-Repository.
+„Quellcode auf GitHub“ öffnet das Projekt. Beide Links verwenden den externen
+Browser beziehungsweise die GitHub-App.
 
 ## Funktionen
 
@@ -33,6 +40,9 @@ die Android-Speicherortauswahl abgelegt, mit Wiederholen nach einem Abbruch.
 Dauerhafte Formularentwürfe vor externen Medienaufrufen, lokale wiederholte
 Erinnerungen und passwortgeschützte `.habackup`-Sicherungen. Wiederherstellung
 führt Akten zusammen und erhält neuere lokale Änderungen.
+Die Android-Dateiauswahl filtert nach dem beim Export verwendeten binären
+Dateityp. Zusätzlich akzeptiert die App ausschließlich die Endung `.habackup`
+und prüft vor der Übernahme Format, Passwort und Inhalt.
 
 ## Voraussetzungen
 

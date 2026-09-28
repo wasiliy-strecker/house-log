@@ -20,6 +20,10 @@ import { BackupCodec, BackupService } from './backup/backup-service';
 import { ExpoMedia, type MediaPort } from './media/media-service';
 import { houseNative, type HouseNative } from './native/house-native';
 import type { Environment } from './ports';
+import {
+  DeviceExternalLinks,
+  type ExternalLinks,
+} from './links/external-links';
 
 export type Services = {
   house: HouseService;
@@ -27,6 +31,7 @@ export type Services = {
   media: MediaPort;
   native: HouseNative;
   viewer: PdfViewerService;
+  links: ExternalLinks;
 };
 const Context = createContext<
   (Services & { revision: number; refresh(): void }) | null
@@ -109,6 +114,7 @@ async function createServices(): Promise<Services> {
     media,
     native: houseNative,
     viewer: new PdfViewerService(house, houseNative),
+    links: new DeviceExternalLinks(),
   };
 }
 export function ServicesProvider({ children }: { children: ReactNode }) {

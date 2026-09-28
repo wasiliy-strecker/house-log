@@ -702,3 +702,40 @@ Version, Debug-Flag, Installer und passende Signatur geprüft. Datenbewahrend au
 dem HONOR installiert und gestarteten Prozess sowie Vordergrundaktivität bestätigt.
 Keine zusätzlichen Bedienabläufe ausgeführt. APK:
 `build/releases/dev/Hausakte-Dev-1.0.0-1-photo-hints-spacing-20260928-2231.apk`.
+
+## Backup-Auswahl und Datenschutz vom 28.09.2026
+
+Aktuelle Fahrzeugakte-Dateiauswahl, Einstellungsansicht und `PRIVACY.md` als
+Referenz gelesen. Vor der Änderung war der Backup-Dateifilter `*/*`.
+Das öffentliche Hausakte-Repository existiert, die Datenschutzdatei fehlte dort.
+Deshalb wurde der GitHub-Link nicht als bereits veröffentlicht ausgegeben.
+
+Manuelle Abnahme: In „Backup wiederherstellen“ einen Ordner mit Hausakte-Backup,
+PDF und Foto öffnen. Backup muss auswählbar sein, bekannte andere Dateitypen
+müssen fehlen oder deaktiviert sein. Auswahl abbrechen. Eine dennoch vom
+Dateianbieter angebotene fremde Binärdatei muss an der Endungsprüfung scheitern.
+Datenschutzkarte und Kontakt mit Fahrzeugakte vergleichen. Nach Veröffentlichung
+müssen Datenschutz- und Quellcode-Link das richtige Hausakte-Repository extern
+öffnen. Ohne verfügbaren URL-Handler muss eine verständliche Snackbar erscheinen.
+Keine umfangreiche Testsuite und keine tatsächliche Datenwiederherstellung.
+
+Formatprüfung, ESLint und TypeScript strict bestanden. Die beiden neuen
+Material-Symbole sind in der vorhandenen Schrift enthalten. Preview-Build
+erfolgreich in 1 Minute 49 Sekunden. Nach Dev-Paket-, Versions-, Installer-
+und Signaturprüfung datenbewahrend auf dem HONOR installiert und gestartet.
+
+Kurz auf Android geprüft: Einstellungen zeigen die angepasste Datenschutzkarte
+und den Entwicklerkontakt. „Backup wiederherstellen“ startet den Systemdialog
+mit `application/octet-stream`. In der zuletzt verwendeten Dateiliste wurden
+Binärdateien einschließlich Backups anderer Apps angezeigt, keine Fotos oder
+PDFs. Auswahl ohne Dateiübernahme abgebrochen. Der Datenschutz-Button öffnet
+Chrome mit der richtigen Hausakte-URL. Anschließend zu den Einstellungen
+zurückgekehrt. Weitere Dateianbieter, ein gültiger Backup-Import und fehlende
+URL-Handler bleiben bei den oben beschriebenen manuellen Prüfschritten.
+
+Der Nutzer hat ausdrücklich ausschließlich die Veröffentlichung von `PRIVACY.md`
+freigegeben. GitHub-Commit `6a2c71108b3234c457d3d7fefc62b761e5140494` enthält nur
+diese Datei. Öffentlicher Link liefert HTTP 200, der veröffentlichte Dateiinhalt
+entspricht der lokalen Datei. Die übrigen App-Änderungen wurden nicht gepusht.
+
+APK: `build/releases/dev/Hausakte-Dev-1.0.0-1-backup-privacy-20260928-2242.apk`.
