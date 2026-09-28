@@ -689,3 +689,16 @@ Verwendeter Installationsbefehl aus dem Hausakte-Verzeichnis:
 ```sh
 npm run install:preview -- A5CS024205005243 build/releases/dev/Hausakte-Dev-1.0.0-1-snackbar-20260928-2141.apk
 ```
+
+## Abstand in den Fotohinweisen vom 28.09.2026
+
+Screenshot von 22:27 angesehen. Der Abstand zwischen Titelzeile und erster
+Hinweiskarte steigt von vier auf 16 Punkte. Manuelle Abnahme durch den Nutzer:
+Fotohinweise öffnen und bei umgebrochener Überschrift den zusätzlichen Abstand
+unter „fotografieren“ prüfen. Keine umfangreichen Tests für die Abstandsänderung.
+
+Formatprüfung, ESLint, TypeScript strict und Preview-Build bestanden. Dev-Paket,
+Version, Debug-Flag, Installer und passende Signatur geprüft. Datenbewahrend auf
+dem HONOR installiert und gestarteten Prozess sowie Vordergrundaktivität bestätigt.
+Keine zusätzlichen Bedienabläufe ausgeführt. APK:
+`build/releases/dev/Hausakte-Dev-1.0.0-1-photo-hints-spacing-20260928-2231.apk`.

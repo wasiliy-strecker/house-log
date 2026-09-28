@@ -547,3 +547,9 @@ Systemeinstellung für reduzierte Bewegung. Systemabstände und mehrzeiliger Tex
 bleiben berücksichtigt. Jede neue Meldung erhält eine eigene Kennung, sodass
 auch identische aufeinanderfolgende Texte ihre volle Anzeigedauer erhalten.
 Ein abgelaufener Timer kann keine neuere Meldung schließen.
+
+## Abstand unter dem Fotohinweis-Titel vom 28.09.2026
+
+Auf Nutzerwunsch erhält die Titelzeile „Haus und Anlagen fotografieren“ zwölf
+zusätzliche Punkte Abstand nach unten. Zusammen mit dem Kartenrand entsteht
+ein Abstand von 16 Punkten zur ersten Karte, auch bei umgebrochener Überschrift.

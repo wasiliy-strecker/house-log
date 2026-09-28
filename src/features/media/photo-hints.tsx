@@ -122,7 +122,13 @@ export function PhotoHints({ disabled }: { disabled: boolean }) {
                   paddingBottom: safe.bottom + 24,
                 }}
               >
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginBottom: 12,
+                  }}
+                >
                   <Text
                     accessibilityRole="header"
                     style={{
