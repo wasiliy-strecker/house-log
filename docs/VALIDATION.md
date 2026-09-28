@@ -675,13 +675,16 @@ Bei Bedarf Hellmodus, große Schrift und reduzierte Bewegung kontrollieren.
 
 Preview-Build erfolgreich in 2 Minuten 10 Sekunden. Dev-Kennung, Version und
 eingebettetes JavaScript der APK durch den Installationshelfer geprüft.
-Während der Umsetzung wurde das Smartphone getrennt. `adb devices -l` zeigt
-keine Geräte. Das Snackbar-Update wurde daher noch nicht installiert und sein
-Verhalten noch nicht auf Android betrachtet. Zuletzt installiert bleibt die
-oben genannte APK mit den Dialogfarben.
+Beim ersten Installationsversuch wurde das Smartphone nicht mehr erkannt.
+Nach erneutem Verbinden wurde dieselbe fertige APK am 28.09.2026 um 21:55 Uhr
+erfolgreich auf dem HONOR installiert. Vorher wurden Paket, Version,
+nicht debuggbarer Preview-Modus, Installer und übereinstimmende Signatur geprüft.
+Das Update erfolgte mit `adb install -r -t -g --no-streaming` ohne Datenlöschung.
+Hausakte wurde anschließend gestartet. Die visuelle Snackbar-Abnahme übernimmt
+wie gewünscht der Nutzer, keine zusätzlichen Bedienabläufe ausgeführt.
 
 APK: `build/releases/dev/Hausakte-Dev-1.0.0-1-snackbar-20260928-2141.apk`.
-Nach erneutem Verbinden aus dem Hausakte-Verzeichnis installieren:
+Verwendeter Installationsbefehl aus dem Hausakte-Verzeichnis:
 
 ```sh
 npm run install:preview -- A5CS024205005243 build/releases/dev/Hausakte-Dev-1.0.0-1-snackbar-20260928-2141.apk
