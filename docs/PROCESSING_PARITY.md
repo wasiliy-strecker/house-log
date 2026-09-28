@@ -460,3 +460,26 @@ und Entfernen. Ab zwei Fotos sind die Verschiebeaktionen sichtbar. Am Anfang
 beziehungsweise Ende sind nicht ausführbare Richtungen grau und deaktiviert.
 Das Foto wird dadurch weder ersetzt noch entfernt, solange keine entsprechende
 Aktion gewählt wird. Andere Menüdarstellungen bleiben erhalten.
+
+## Verlaufskarten vom 28.09.2026
+
+Referenz sind die beiden Smartphone-Screenshots von 07:24 und
+`reading_history_tile.dart`. Aktenübersicht im Detail und separate Verlaufsseite
+verwenden dieselbe neue Karte. Oben steht eine abgerundete Datumsleiste mit
+Kalendersymbol. Darunter erscheinen das erste Foto in gespeicherter Reihenfolge
+als 92 × 92 große Vorschau, rechts die kleine Aktivität, der große Messstand
+und der Pfeil zur Eintragsdetailseite. Ab zwei Fotos steht die Anzahl auf dem Bild.
+Die Vorschau füllt wie bei Flutter den quadratischen Ausschnitt. Originaldateien
+und Großansicht bleiben unverändert. Ohne Foto erscheint das Erfassungssymbol,
+bei einem nicht ladbaren Foto ein Bildfehlersymbol. Die Notiz folgt unterhalb
+mit eigenem Symbol und höchstens zwei sichtbaren Zeilen.
+
+Fehlt ein Messstand, lautet der fachliche Ersatz „Ohne Messangabe“. Vergleichbare
+Werte zeigen die vorhandene Differenz nun als „vorher → aktuell = Differenz“.
+Die bestehende Auswahl des letzten früheren Messwerts gleicher Einheit bleibt
+erhalten. Bei aktiver Verlaufssuche wird die Vergleichszeile wie bei Fahrzeugakte
+ausgeblendet. Kosten, Dienstleister und PDF-Liste sind wie dort in den
+Eintragsdetails zugänglich, statt die kompakte Verlaufskarte zu verlängern.
+Kartenabstände und Eintragszähler folgen der Vorlage, einschließlich „1 Treffer“.
+Die Seitengröße bleibt zehn. Dateipfade werden im View-Model über den FileVault-Port
+aufgelöst. Die Kartenkomponente führt keine Datei- oder Datenbankoperationen aus.

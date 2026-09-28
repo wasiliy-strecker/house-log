@@ -561,3 +561,30 @@ bedient oder visuell abgenommen. Diese Prüfung übernimmt der Nutzer.
 Keine Änderungen an Fahrzeugakte und kein Update des Emulators.
 
 APK: `build/releases/dev/Hausakte-Dev-1.0.0-1-photo-visual-20260927-2001.apk`.
+
+## Aktenverlauf mit Fotovorschau vom 28.09.2026
+
+Beide Smartphone-Screenshots von 07:24 wurden angesehen und mit der aktuellen
+Flutter-Verlaufskarte verglichen. Formatprüfung, ESLint und TypeScript strict
+bestanden nach der Anpassung. Keine umfangreiche Testsuite und keine neuen
+Testdatensätze auf dem Smartphone, entsprechend dem Nutzerwunsch.
+
+Manuelle Abnahme: Im Aktenverlauf eine vorhandene Karte mit Foto ansehen.
+Datumsleiste, erstes Foto, Aktivität, Messstand und vorhandene Notiz vergleichen.
+Tippen öffnet weiterhin den Eintrag mit Dienstleister, Kosten und Anhängen.
+Ab zwei Fotos muss die Anzahl im Bild erscheinen. Nach Umsortieren und Speichern
+muss das neue erste Foto auch im Verlauf vorne stehen. Ein Eintrag ohne Foto
+zeigt das Erfassungssymbol, ein fehlendes Foto das Bildfehlersymbol. Ohne Messwert
+muss „Ohne Messangabe“ statt einer künstlichen Null erscheinen. Zwei Messwerte
+gleicher Einheit zeigen ihre Vergleichszeile. Die Suche blendet diese Zeile aus.
+Dieselben Karten auf der separaten Verlaufsseite sowie Hellmodus und große
+Systemschrift prüfen. Noch nicht ausgeführte Schritte sind keine bestandenen Tests.
+
+Preview-Build bestanden. Auf HONOR BVL-N49 wurden Paket
+`com.appfactory.house_log.dev`, Version 1.0.0 (1), nicht debuggbarer Preview-Modus,
+Installer und übereinstimmende Signatur geprüft. Datenbewahrendes APK-Update
+erfolgreich, App-Prozess gestartet. Das Smartphone blieb gesperrt. Deshalb keine
+Behauptung einer ausgeführten visuellen Abnahme der neuen Verlaufskarten.
+Fahrzeugakte und gespeicherte Einträge wurden nicht bearbeitet.
+
+APK: `build/releases/dev/Hausakte-Dev-1.0.0-1-history-cards-20260928-0733.apk`.

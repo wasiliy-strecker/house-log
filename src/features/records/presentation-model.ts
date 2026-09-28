@@ -4,7 +4,25 @@ import type {
   Reminder,
   EntryDraft,
 } from '../../core/domain/models';
-import { categories } from '../../core/domain/models';
+import { categories, measurementDelta } from '../../core/domain/models';
+
+export type HistoryItem = {
+  entry: HouseEntry;
+  photoUri?: string;
+  photoCount: number;
+  measurementText: string;
+  comparison: string | null;
+};
+export function historyComparison(
+  entry: HouseEntry,
+  previous: HouseEntry | null,
+): string | null {
+  if (!previous) return null;
+  const delta = measurementDelta(entry, previous);
+  if (delta === null || !entry.measurement || !previous.measurement)
+    return null;
+  return `${previous.measurement.value.toLocaleString('de-DE')} → ${entry.measurement.value.toLocaleString('de-DE')} = ${delta.toLocaleString('de-DE')} ${entry.measurement.unit} Differenz`;
+}
 
 export function categorySuggestions(records: HouseRecord[]): string[] {
   const unique = new Map<string, string>();

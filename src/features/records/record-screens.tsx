@@ -18,6 +18,7 @@ import {
 import { Icon, categoryIcon } from '../../core/ui/icon';
 import { useFeedback } from '../../core/ui/feedback';
 import { useRecords, useRecordDetail, useReports } from './use-records';
+import { HistoryTile } from './history-tile';
 import {
   dateTime,
   entrySummary,
@@ -25,12 +26,7 @@ import {
   sortLabels,
   type RecordSort,
 } from './presentation-model';
-import {
-  money,
-  PAGE_SIZE,
-  type HouseEntry,
-  type HouseRecord,
-} from '../../core/domain/models';
+import { PAGE_SIZE, type HouseRecord } from '../../core/domain/models';
 import type { ReminderStatus } from '../../core/native/house-native';
 export function ReminderInfo({
   record,
@@ -257,57 +253,6 @@ export function RecordsScreen() {
         </>
       )}
     </Page>
-  );
-}
-export function HistoryTile({
-  entry,
-  delta,
-}: {
-  entry: HouseEntry;
-  delta?: number | null;
-}) {
-  const c = useTheme();
-  return (
-    <Card
-      onPress={() =>
-        router.push({ pathname: '/entry/[id]', params: { id: entry.id } })
-      }
-      style={{ padding: 14 }}
-    >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        <Icon
-          name={
-            entry.attachments.some((a) => a.kind === 'photo')
-              ? 'photo_camera_outlined'
-              : 'edit_note_outlined'
-          }
-          color={c.primary}
-        />
-        <View style={{ flex: 1, gap: 4 }}>
-          <Body strong style={{ fontSize: 16 }}>
-            {entrySummary(entry)}
-          </Body>
-          <Body muted>{dateTime(entry.occurredAt)}</Body>
-          {!!entry.provider && <Body muted>{entry.provider}</Body>}
-          {entry.costCents !== null && (
-            <Body>Kosten: {money(entry.costCents)}</Body>
-          )}
-          {delta !== null && delta !== undefined && (
-            <Body muted>
-              Differenz: {delta.toLocaleString('de-DE')}{' '}
-              {entry.measurement?.unit}
-            </Body>
-          )}
-          {entry.attachments.length > 0 && (
-            <Body muted>
-              {entry.attachments.filter((a) => a.kind === 'photo').length} Fotos
-              · {entry.attachments.filter((a) => a.kind === 'pdf').length} PDFs
-            </Body>
-          )}
-        </View>
-        <Icon name="chevron_right" />
-      </View>
-    </Card>
   );
 }
 export function Pager({
@@ -538,7 +483,7 @@ export function RecordDetailScreen() {
       <View style={{ marginTop: vm.total > 0 ? 6 : 18, gap: 8 }}>
         <Heading>Aktenverlauf</Heading>
         {vm.total > 0 && (
-          <Body>
+          <Body style={{ fontFamily: 'RobotoMedium', letterSpacing: 0.1 }}>
             {vm.total === 1
               ? '1 Eintrag'
               : `${vm.entries.length} von ${vm.total} Einträgen`}
@@ -573,10 +518,12 @@ export function RecordDetailScreen() {
             </View>
           </Card>
         )}
+        <View style={{ gap: 10 }}>
+          {vm.historyItems.map((item) => (
+            <HistoryTile key={item.entry.id} item={item} />
+          ))}
+        </View>
       </View>
-      {vm.entries.map((e) => (
-        <HistoryTile key={e.id} entry={e} delta={vm.deltas[e.id]} />
-      ))}
       {vm.total > PAGE_SIZE && (
         <Button
           secondary
@@ -607,7 +554,16 @@ export function RecordHistoryScreen() {
             backgroundColor: c.background,
           }}
         >
-          <Body strong>{vm.record?.name ?? ''}</Body>
+          <Body
+            style={{
+              fontFamily: 'RobotoMedium',
+              fontSize: 16,
+              lineHeight: 24,
+              letterSpacing: 0.15,
+            }}
+          >
+            {vm.record?.name ?? ''}
+          </Body>
           <Field
             label="Einträge suchen"
             leading="search"
@@ -627,16 +583,22 @@ export function RecordHistoryScreen() {
       {vm.loading ? (
         <Busy />
       ) : (
-        <>
-          <Body strong>
+        <View style={{ gap: 8 }}>
+          <Body style={{ fontFamily: 'RobotoMedium', letterSpacing: 0.1 }}>
             {vm.total === 0
               ? 'Keine Einträge gefunden'
-              : `${vm.offset + 1}–${Math.min(vm.offset + PAGE_SIZE, vm.total)} von ${vm.total} ${vm.search ? 'Treffern' : 'Einträgen'}`}
+              : vm.total === 1
+                ? vm.search.trim()
+                  ? '1 Treffer'
+                  : '1 Eintrag'
+                : `${vm.offset + 1}–${Math.min(vm.offset + PAGE_SIZE, vm.total)} von ${vm.total} ${vm.search.trim() ? 'Treffern' : 'Einträgen'}`}
           </Body>
-          {vm.entries.map((e) => (
-            <HistoryTile key={e.id} entry={e} delta={vm.deltas[e.id]} />
-          ))}
-        </>
+          <View style={{ gap: 10 }}>
+            {vm.historyItems.map((item) => (
+              <HistoryTile key={item.entry.id} item={item} />
+            ))}
+          </View>
+        </View>
       )}
     </Page>
   );

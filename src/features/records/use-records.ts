@@ -10,14 +10,16 @@ import type {
   HouseEntry,
   SavedReport,
 } from '../../core/domain/models';
-import { PAGE_SIZE, measurementDelta } from '../../core/domain/models';
+import { PAGE_SIZE } from '../../core/domain/models';
 import type { ReminderStatus } from '../../core/native/house-native';
 import { errorText } from '../../core/ui/components';
 import { useTask } from '../../core/ui/use-task';
 import { useFeedback } from '../../core/ui/feedback';
 import {
   visibleRecords,
+  historyComparison,
   type DashboardItem,
+  type HistoryItem,
   type RecordSort,
 } from './presentation-model';
 export function useReminderStatus() {
@@ -98,7 +100,7 @@ export function useRecordDetail(id: string, history = false) {
   const { house, native, revision, refresh } = useServices();
   const [record, setRecord] = useState<HouseRecord>(),
     [entries, setEntries] = useState<HouseEntry[]>([]),
-    [deltas, setDeltas] = useState<Record<string, number | null>>({}),
+    [comparisons, setComparisons] = useState<Record<string, string | null>>({}),
     [total, setTotal] = useState(0),
     [offset, setOffset] = useState(0),
     [search, setSearch] = useState(''),
@@ -122,8 +124,11 @@ export function useRecordDetail(id: string, history = false) {
         .then(async ([records, page]) => {
           const comparisons = await Promise.all(
             page.rows.map(async (e) => {
-              const p = await house.repository.previousMeasurement(e);
-              return [e.id, p ? measurementDelta(e, p) : null] as const;
+              const p =
+                history && search.trim()
+                  ? null
+                  : await house.repository.previousMeasurement(e);
+              return [e.id, historyComparison(e, p)] as const;
             }),
           );
           if (!active) return;
@@ -131,7 +136,7 @@ export function useRecordDetail(id: string, history = false) {
           setEntries(page.rows);
           setTotal(page.total);
           setHasAttachments(page.hasAttachments);
-          setDeltas(Object.fromEntries(comparisons));
+          setComparisons(Object.fromEntries(comparisons));
           setError('');
           if (offset && offset >= page.total)
             setOffset(
@@ -156,7 +161,18 @@ export function useRecordDetail(id: string, history = false) {
     record,
     entries,
     hasAttachments,
-    deltas,
+    historyItems: entries.map((entry): HistoryItem => {
+      const photos = entry.attachments.filter((a) => a.kind === 'photo');
+      return {
+        entry,
+        photoUri: photos[0] ? house.vault.uri(photos[0].file) : undefined,
+        photoCount: photos.length,
+        measurementText: entry.measurement
+          ? `${entry.measurement.value.toLocaleString('de-DE')} ${entry.measurement.unit}`
+          : 'Ohne Messangabe',
+        comparison: comparisons[entry.id] ?? null,
+      };
+    }),
     total,
     offset,
     setOffset,
