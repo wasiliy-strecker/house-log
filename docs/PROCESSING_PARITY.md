@@ -521,3 +521,29 @@ dieselbe vorhandene Kartenansicht wie die Auswahl des PDF-Protokollinhalts.
 „PDF auswählen“ und „Dokument scannen“ stehen jeweils in einer eigenen Karte
 mit Symbol, Erklärung und Pfeil. Auswahl, Abbruch, Wischgeste und die bestehenden
 Import- und Scannerabläufe bleiben unverändert.
+
+## Dialogfarben vom 28.09.2026
+
+Der Smartphone-Screenshot von 21:26 zeigt den bisher neutralgrauen Löschdialog.
+Auf Nutzerwunsch verwenden Bestätigungen und normale Auswahlflächen jetzt die
+vorhandene Kartenfarbe der App. Passwort- und Fortschrittsdialoge folgen derselben
+Farbe. Im Dunkelmodus ist dies `#212C37`, im Hellmodus `#FAFCFE`. Es wird keine
+neue Farbpalette eingeführt. Der Beschreibungstext einer Bestätigung verwendet
+wie ihre Überschrift die normale Textfarbe `ink`. Erläuterungen in Auswahlkarten
+behalten `muted`. Aktions- und Warnfarben bleiben die vorhandenen Theme-Werte.
+Die abgedunkelte Fläche hinter dem Dialog bleibt für seine Abgrenzung erhalten.
+Das zuvor gezielt angeglichene schlichte Foto-Kontextmenü bleibt unverändert.
+
+## Kurze Bestätigungen vom 28.09.2026
+
+Der Screenshot von 21:32 zeigt die bisher schwebende Meldung mit Schließen-Kreuz.
+Die gemeinsame Snackbar folgt jetzt `AppSnackBar` der Fahrzeugakte und den
+Standardwerten des installierten Flutter-SDK. Sie steht ohne Außenabstand am
+unteren Bildschirmrand, zeigt zentrierten Roboto-Text mit 14 Punkten und benötigt
+keinen Schließen-Knopf. Die Einblendung und Ausblendung dauern jeweils 250 ms.
+Dazwischen bleibt der Hinweis vier Sekunden sichtbar, zuvor waren es 6,5 Sekunden.
+Die Bewegung läuft über Reanimated auf dem UI-Thread und berücksichtigt dessen
+Systemeinstellung für reduzierte Bewegung. Systemabstände und mehrzeiliger Text
+bleiben berücksichtigt. Jede neue Meldung erhält eine eigene Kennung, sodass
+auch identische aufeinanderfolgende Texte ihre volle Anzeigedauer erhalten.
+Ein abgelaufener Timer kann keine neuere Meldung schließen.

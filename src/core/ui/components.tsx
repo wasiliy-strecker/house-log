@@ -842,7 +842,7 @@ export function BusyOverlay({
         }}
       >
         <View
-          style={{ backgroundColor: c.elevated, borderRadius: 24, padding: 16 }}
+          style={{ backgroundColor: c.card, borderRadius: 24, padding: 16 }}
         >
           <Busy label={label} />
         </View>

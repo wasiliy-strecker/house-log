@@ -23,6 +23,7 @@ import {
 } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { useSheetDrag } from './use-sheet-drag';
+import { Snackbar } from './snackbar';
 export type Choice = {
   value: string;
   label: string;
@@ -72,13 +73,14 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
     (question?.options.length ?? 0) * Math.max(48, 20 * window.fontScale + 24) +
     16;
   const resolve = useRef<((v: string | null) => void) | null>(null);
-  const [message, setMessage] = useState('');
-  useEffect(() => {
-    if (message) {
-      const timer = setTimeout(() => setMessage(''), 6500);
-      return () => clearTimeout(timer);
-    }
-  }, [message]);
+  const nextNoticeId = useRef(0);
+  const [notice, setNotice] = useState<{ id: number; message: string }>();
+  const notify = useCallback((message: string) => {
+    setNotice(message ? { id: ++nextNoticeId.current, message } : undefined);
+  }, []);
+  const dismissNotice = useCallback((id: number) => {
+    setNotice((current) => (current?.id === id ? undefined : current));
+  }, []);
   const choose = useCallback(
     (q: Question) =>
       new Promise<string | null>((done) => {
@@ -125,43 +127,10 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
     color: c.ink,
   } as const;
   return (
-    <Context.Provider value={{ choose, confirm, notify: setMessage }}>
+    <Context.Provider value={{ choose, confirm, notify }}>
       {children}
-      {!!message && (
-        <View
-          accessibilityLiveRegion="polite"
-          style={{
-            position: 'absolute',
-            bottom: safe.bottom + 12,
-            left: 16,
-            right: 16,
-            borderRadius: 4,
-            padding: 16,
-            backgroundColor: c.dark ? '#E0E2E8' : '#2D3135',
-            elevation: 6,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 12,
-          }}
-        >
-          <Text
-            style={[text, { flex: 1, color: c.dark ? '#2D3135' : '#F1F4F7' }]}
-          >
-            {message}
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Hinweis schließen"
-            onPress={() => setMessage('')}
-            style={{ padding: 8 }}
-          >
-            <Icon
-              name="close"
-              color={c.dark ? '#2D3135' : '#F1F4F7'}
-              size={20}
-            />
-          </Pressable>
-        </View>
+      {notice && (
+        <Snackbar key={notice.id} {...notice} onDismiss={dismissNotice} />
       )}
       <Modal
         visible={!!question}
@@ -200,9 +169,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                       ? c.dark
                         ? '#1D2026'
                         : '#ECEEF4'
-                      : cardOptions
-                        ? c.card
-                        : c.elevated,
+                      : c.card,
                     borderRadius: 28,
                     borderBottomLeftRadius: question?.dialog ? 28 : 0,
                     borderBottomRightRadius: question?.dialog ? 28 : 0,
@@ -321,7 +288,12 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                       {question?.title}
                     </Text>
                     {!!question?.message && (
-                      <Text style={[text, { color: c.muted }]}>
+                      <Text
+                        style={[
+                          text,
+                          { color: question.dialog ? c.ink : c.muted },
+                        ]}
+                      >
                         {question.message}
                       </Text>
                     )}

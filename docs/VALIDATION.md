@@ -636,3 +636,53 @@ importiert oder gescannt, kein Eintrag gespeichert oder verworfen. Der Ersetzen-
 verwendet denselben Dialog, wurde in dieser kurzen Abnahme nicht separat bedient.
 
 APK: `build/releases/dev/Hausakte-Dev-1.0.0-1-pdf-source-cards-20260928-2120.apk`.
+
+## Dialogfarben passend zur App vom 28.09.2026
+
+Letzten Smartphone-Screenshot von 21:26 angesehen. Formatprüfung, ESLint und
+TypeScript strict bestanden. Die Kontrastverhältnisse wurden aus den verwendeten
+RGB-Werten berechnet. Normaler Text auf dem Dialoghintergrund erreicht 10,95:1
+im Dunkelmodus und 16,66:1 im Hellmodus. Die verwendeten Neben-, Aktions- und
+Warnfarben erreichen mindestens 6,28:1 auf diesen Flächen.
+
+Manuelle Abnahme: Den Löschdialog eines vorhandenen Hausprotokolls öffnen.
+Blaugrauen Hintergrund, normale Textfarbe, blaue Abbrechen-Aktion und rote
+Löschen-Aktion kontrollieren und abbrechen. Auch andere Bestätigungen,
+Backup-Passworteingabe und Fortschrittsfenster verwenden die Kartenfarbe.
+Helle Systemdarstellung und große Schrift bei Bedarf zusätzlich prüfen.
+Keine umfangreiche Testsuite und keine tatsächliche Löschung für diese Farbänderung.
+
+Preview-Build bestanden und nach Paket-, Versions-, Installer- und Signaturprüfung
+datenbewahrend auf dem HONOR installiert. Der Nutzer wechselte während der
+angefangenen Sichtkontrolle zur Anpassung der kurzen Bestätigung. Deshalb keine
+abgeschlossene visuelle Dialogabnahme behauptet. Es wurde nichts gelöscht.
+
+APK: `build/releases/dev/Hausakte-Dev-1.0.0-1-modal-colors-20260928-2132.apk`.
+
+## Kurze Bestätigung wie Fahrzeugakte vom 28.09.2026
+
+Letzten Screenshot von 21:32 angesehen und die Snackbar mit `AppSnackBar` sowie
+dem lokal installierten Flutter-SDK verglichen. Formatprüfung, ESLint und
+TypeScript strict bestanden. Auf ausdrücklichen Nutzerwunsch keine umfangreichen
+Tests und keine weiteren automatisierten Bedienabläufe. Die Sichtprüfung
+übernimmt der Nutzer.
+
+Manuelle Abnahme: Eine ohnehin gewünschte Änderung speichern. Die Bestätigung
+soll am unteren Rand ohne seitlichen Abstand und ohne Kreuz erscheinen, den Text
+zentrieren und nach vier Sekunden wieder verschwinden. Dieselbe Aktion zweimal
+hintereinander ausführen, um das erneute Anzeigen identischer Texte zu prüfen.
+Bei Bedarf Hellmodus, große Schrift und reduzierte Bewegung kontrollieren.
+
+Preview-Build erfolgreich in 2 Minuten 10 Sekunden. Dev-Kennung, Version und
+eingebettetes JavaScript der APK durch den Installationshelfer geprüft.
+Während der Umsetzung wurde das Smartphone getrennt. `adb devices -l` zeigt
+keine Geräte. Das Snackbar-Update wurde daher noch nicht installiert und sein
+Verhalten noch nicht auf Android betrachtet. Zuletzt installiert bleibt die
+oben genannte APK mit den Dialogfarben.
+
+APK: `build/releases/dev/Hausakte-Dev-1.0.0-1-snackbar-20260928-2141.apk`.
+Nach erneutem Verbinden aus dem Hausakte-Verzeichnis installieren:
+
+```sh
+npm run install:preview -- A5CS024205005243 build/releases/dev/Hausakte-Dev-1.0.0-1-snackbar-20260928-2141.apk
+```

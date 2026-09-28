@@ -44,7 +44,7 @@ function PasswordDialog({
       >
         <View
           style={{
-            backgroundColor: c.elevated,
+            backgroundColor: c.card,
             borderRadius: 28,
             padding: 24,
             gap: 16,
