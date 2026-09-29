@@ -22,6 +22,7 @@ export interface HouseNative {
   renderPdfPage(session: string, index: number, width: number): Promise<string>;
   closePdfPreview(session: string): Promise<void>;
   printPdf(uri: string, name: string): Promise<void>;
+  sharePdfs(uris: string[]): Promise<void>;
   saveBackupFile(
     uri: string,
     name: string,

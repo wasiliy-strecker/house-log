@@ -56,6 +56,9 @@ function ReportCard({
         <Body style={[s.reportTitle, { color: c.onSecondaryContainer }]}>
           Hausprotokoll ·{' '}
           {report.entryId ? 'Einzelner Eintrag' : 'Aktenverlauf'}
+          {report.partIndex
+            ? ` · Teil ${report.partIndex} von ${report.partCount}`
+            : ''}
         </Body>
         <Body style={{ color: c.onSecondaryContainer, marginTop: 3 }}>
           Erstellt am {dateTime(report.createdAt)} Uhr

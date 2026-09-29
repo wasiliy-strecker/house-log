@@ -4,6 +4,10 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetHandle,
+  useBottomSheetInternal,
+  useGestureEventsHandlersDefault,
+  ANIMATION_SOURCE,
+  type GestureEventsHandlersHookType,
   BottomSheetScrollView,
   type BottomSheetBackdropProps,
   type BottomSheetHandleProps,
@@ -39,7 +43,34 @@ const hints: { title: string; icon: IconName; text: string }[] = [
     text: 'Fotografiere die Anzeige. Den abgelesenen Wert und seine Einheit trägst du selbst in das Formular ein.',
   },
 ];
-const snapPoints = ['70%', '95%'];
+const snapPoints = ['25%', '70%', '95%'];
+// Keep the library's scroll-to-drag handoff, but let go at any height as
+// Flutter's DraggableScrollableSheet does with snap=false.
+const useFreeSheetGestures: GestureEventsHandlersHookType = () => {
+  const handlers = useGestureEventsHandlersDefault();
+  const { animatedPosition, animatedDetentsState, animateToPosition } =
+    useBottomSheetInternal();
+  return {
+    ...handlers,
+    handleOnEnd: () => {
+      'worklet';
+      const { detents, highestDetentPosition, closedDetentPosition } =
+        animatedDetentsState.get();
+      if (
+        !detents?.length ||
+        highestDetentPosition === undefined ||
+        closedDetentPosition === undefined
+      )
+        return;
+      const position = animatedPosition.get();
+      if (position >= detents[0]! - 1) {
+        animateToPosition(closedDetentPosition, ANIMATION_SOURCE.GESTURE, 0);
+      } else if (position < highestDetentPosition) {
+        animateToPosition(highestDetentPosition, ANIMATION_SOURCE.GESTURE, 0);
+      }
+    },
+  };
+};
 function HintsBackdrop(props: BottomSheetBackdropProps) {
   return (
     <BottomSheetBackdrop
@@ -96,8 +127,9 @@ export function PhotoHints({ disabled }: { disabled: boolean }) {
           {open && (
             <BottomSheet
               ref={sheet}
-              index={0}
+              index={1}
               snapPoints={snapPoints}
+              gestureEventsHandlersHook={useFreeSheetGestures}
               enableDynamicSizing={false}
               enablePanDownToClose
               enableOverDrag={false}

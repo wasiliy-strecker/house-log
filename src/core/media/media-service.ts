@@ -12,6 +12,7 @@ import { MAX_BACKUP_BYTES } from '../backup/backup-service';
 
 export type PreparedBackup = { uri: string; name: string };
 export type PickResult = { attachments: Attachment[]; failures: string[] };
+type ShareItem = { file: string; sha256: string; name?: string };
 export interface MediaPort {
   pick(
     source: NonNullable<EntryDraft['external']>,
@@ -19,7 +20,8 @@ export interface MediaPort {
   ): Promise<PickResult>;
   recoverPhotos(): Promise<PickResult>;
   open(item: { file: string; sha256: string }): Promise<void>;
-  share(item: { file: string; sha256: string }): Promise<void>;
+  share(item: ShareItem): Promise<void>;
+  shareMany(items: ShareItem[]): Promise<void>;
   prepareBackup(bytes: Uint8Array): Promise<PreparedBackup>;
   saveBackup(file: PreparedBackup): Promise<'saved' | 'cancelled'>;
   shareBackup(file: PreparedBackup): Promise<void>;
@@ -133,7 +135,12 @@ export class ExpoMedia implements MediaPort {
         if (nativePages !== pdf.getPageCount())
           throw new Error('Die PDF-Seiten sind inkonsistent.');
         output.attachments.push(
-          await this.house.importAttachment(bytes, 'pdf', asset.name),
+          await this.house.importAttachment(
+            bytes,
+            'pdf',
+            asset.name,
+            source === 'scanner' ? 'scanned' : 'imported',
+          ),
         );
       } catch (error) {
         output.failures.push(
@@ -156,13 +163,61 @@ export class ExpoMedia implements MediaPort {
       );
     }
   }
-  async share(item: { file: string; sha256: string }) {
+  private sharedCopy(item: ShareItem, directory: Directory, fallback: string) {
+    const name =
+      (item.name || fallback)
+        .replace(/\.pdf$/i, '')
+        .replace(/[^\p{L}\p{N} ._-]/gu, '_')
+        .slice(0, 160) + '.pdf';
+    const copy = new File(directory, name);
+    new File(this.house.vault.uri(item.file)).copy(copy);
+    return copy.uri;
+  }
+  async share(item: ShareItem) {
     await verifiedFile(this.house.vault, item);
     if (!(await Sharing.isAvailableAsync()))
       throw new Error('Teilen ist auf diesem Gerät nicht verfügbar.');
-    await Sharing.shareAsync(this.house.vault.uri(item.file), {
+    let uri = this.house.vault.uri(item.file);
+    if (item.file.endsWith('.pdf') && item.name) {
+      const directory = new Directory(
+        Paths.cache,
+        'exports',
+        `share-${this.house.env.id()}`,
+      );
+      directory.create({ intermediates: true, idempotent: true });
+      uri = this.sharedCopy(item, directory, 'Hausprotokoll');
+    }
+    await Sharing.shareAsync(uri, {
       mimeType: item.file.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg',
     });
+  }
+  async shareMany(items: ShareItem[]) {
+    if (!items.length) throw new Error('Keine Protokollteile vorhanden.');
+    for (const item of items) await verifiedFile(this.house.vault, item);
+    const directory = new Directory(
+      Paths.cache,
+      'exports',
+      `share-${this.house.env.id()}`,
+    );
+    directory.create({ intermediates: true, idempotent: true });
+    try {
+      const uris = items.map((item, i) =>
+        this.sharedCopy(
+          {
+            ...item,
+            name: `Hausprotokoll_Teil_${String(i + 1).padStart(2, '0')}_von_${items.length}`,
+          },
+          directory,
+          'Hausprotokoll',
+        ),
+      );
+      await houseNative.sharePdfs(uris);
+      // Android reads the content URIs after the chooser resolves. Keep these
+      // disposable copies in cache while the receiving app consumes them.
+    } catch (error) {
+      directory.delete();
+      throw error;
+    }
   }
   async prepareBackup(bytes: Uint8Array): Promise<PreparedBackup> {
     const directory = new Directory(Paths.cache, 'exports');

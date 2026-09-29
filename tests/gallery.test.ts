@@ -9,16 +9,69 @@ import {
 import type { Attachment } from '../src/core/domain/models';
 import { PhotoGallery } from '../src/features/media/attachments';
 
-vi.mock('react-native', () => ({
-  Image: 'Image',
-  Pressable: 'Pressable',
-  View: 'View',
-  Text: 'Text',
-  Animated: { View: 'AnimatedView' },
-  Dimensions: { get: () => ({ width: 400, height: 800 }) },
-  StyleSheet: { create: (v: unknown) => v },
-  VirtualizedList: 'VirtualizedList',
-  Modal: 'Modal',
+const native = vi.hoisted(() => ({
+  scrollToOffset: vi.fn(),
+  timings: vi.fn(),
+}));
+vi.mock('react-native', async () => {
+  const React = await import('react');
+  class Value {
+    value: number;
+    listeners = new Map<string, (event: { value: number }) => void>();
+    constructor(value: number) {
+      this.value = value;
+    }
+    setValue(value: number) {
+      this.value = value;
+      this.listeners.forEach((f) => f({ value }));
+    }
+    addListener(f: (event: { value: number }) => void) {
+      this.listeners.set('listener', f);
+      return 'listener';
+    }
+    removeListener(id: string) {
+      this.listeners.delete(id);
+    }
+    stopAnimation() {}
+    interpolate() {
+      return this;
+    }
+  }
+  return {
+    Image: 'Image',
+    Pressable: 'Pressable',
+    View: 'View',
+    Text: 'Text',
+    Modal: 'Modal',
+    useWindowDimensions: () => ({ width: 400, height: 800 }),
+    Easing: { out: () => 'cubic', cubic: 'cubic' },
+    Animated: {
+      View: 'AnimatedView',
+      Value,
+      timing: (
+        value: Value,
+        config: { toValue: number; duration: number },
+      ) => ({
+        start: (done?: (event: { finished: boolean }) => void) => {
+          native.timings(config);
+          value.setValue(config.toValue);
+          done?.({ finished: true });
+        },
+      }),
+    },
+    FlatList: React.forwardRef(function MockFlatList(props: object, ref) {
+      React.useImperativeHandle(ref, () => ({
+        scrollToOffset: native.scrollToOffset,
+      }));
+      return React.createElement('FlatList', props);
+    }),
+  };
+});
+vi.mock('react-native-gesture-handler', () => ({
+  GestureHandlerRootView: 'GestureRoot',
+}));
+vi.mock('../src/features/media/zoomable-photo', () => ({
+  ZoomablePhoto: 'ZoomablePhoto',
 }));
 vi.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0 }),
@@ -58,21 +111,6 @@ vi.mock('../src/core/ui/sortable', () => ({
       ),
     ),
 }));
-vi.mock(
-  'react-native-image-viewing/dist/components/ImageItem/ImageItem.android.js',
-  () => ({ default: () => null }),
-);
-vi.mock(
-  'react-native-image-viewing/dist/components/ImageDefaultHeader',
-  () => ({ default: () => null }),
-);
-vi.mock('react-native-image-viewing/dist/components/StatusBarManager', () => ({
-  default: () => null,
-}));
-vi.mock('react-native-image-viewing/dist/hooks/useAnimatedComponents', () => ({
-  default: () => [[], [], () => {}],
-}));
-
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 const host = (name: string) => (node: ReactTestInstance) => node.type === name;
 let renderer: ReactTestRenderer | undefined;
@@ -99,16 +137,30 @@ it('keeps actual viewer index, both counters and arrows aligned after mixed swip
       thumbnail ? { accessibilityLabel: label } : { label },
     );
     expect(button.props.disabled).not.toBe(true);
+    const before = root().findAll(host('FlatList'))[0];
     await act(async () => button.props.onPress());
+    if (thumbnail) {
+      await act(async () =>
+        root()
+          .findAll(host('View'))
+          .find((v) => v.props.onLayout)!
+          .props.onLayout({ nativeEvent: { layout: { height: 696 } } }),
+      );
+    } else if (label.includes('Foto') && !label.includes('schließen')) {
+      expect(root().find(host('FlatList'))).toBe(before);
+      expect(native.timings).toHaveBeenLastCalledWith(
+        expect.objectContaining({ duration: 200 }),
+      );
+    }
   };
   const swipe = async (index: number) => {
-    const list = root().find(host('VirtualizedList'));
+    const list = root().find(host('FlatList'));
     await act(async () =>
       list.props.onMomentumScrollEnd({
         nativeEvent: { contentOffset: { x: 400 * index } },
       }),
     );
-    expect(root().find(host('VirtualizedList'))).toBe(list);
+    expect(root().find(host('FlatList'))).toBe(list);
   };
   const expectPage = (page: number) => {
     expect(
@@ -123,6 +175,11 @@ it('keeps actual viewer index, both counters and arrows aligned after mixed swip
         .find((n) => n.children.includes(' / '))
         ?.children.join(''),
     ).toBe(`${page} / 3`);
+    if (native.scrollToOffset.mock.calls.length)
+      expect(native.scrollToOffset).toHaveBeenLastCalledWith({
+        offset: (page - 1) * 400,
+        animated: false,
+      });
     expect(
       root().findByProps({ label: 'Vorheriges Foto' }).props.disabled,
     ).toBe(page === 1);
@@ -145,7 +202,8 @@ it('keeps actual viewer index, both counters and arrows aligned after mixed swip
   await press('Nächstes Foto');
   expectPage(3);
   await press('Fotogalerie schließen');
-  expect(root().findAll(host('VirtualizedList'))).toHaveLength(0);
+  expect(root().findAll(host('FlatList'))).toHaveLength(0);
+  native.scrollToOffset.mockClear();
   await press('Foto 2 von 3 ansehen', true);
   expectPage(2);
   await swipe(2);

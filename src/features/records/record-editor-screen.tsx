@@ -1,6 +1,6 @@
 import { Pressable, View } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+import { useMaterialDateTime } from '../../core/ui/material-date-time';
 import {
   Body,
   Button,
@@ -19,6 +19,7 @@ import { SuggestionField } from '../../core/ui/suggestion-field';
 import type { Reminder } from '../../core/domain/models';
 import { useRecordEditor } from './use-record-editor';
 import { useReminderStatus } from './use-records';
+import { needsReminderRepair } from './reminder-repair';
 const intervals: Record<Reminder['interval'], string> = {
   hourly: 'Stündlich',
   daily: 'Täglich',
@@ -39,7 +40,8 @@ export function RecordEditorScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const vm = useRecordEditor(id),
     c = useTheme(),
-    status = useReminderStatus();
+    status = useReminderStatus(),
+    picker = useMaterialDateTime();
   const r = vm.record;
   if (!r)
     return (
@@ -49,21 +51,16 @@ export function RecordEditorScreen() {
       </Page>
     );
   const reminder = r.reminder;
+  const repair = !!id && needsReminderRepair(r, status);
   const time = reminder
     ? `${String(reminder.hour).padStart(2, '0')}:${String(reminder.minute).padStart(2, '0')} Uhr`
     : '';
-  function pickTime() {
+  async function pickTime() {
     const date = new Date();
     date.setHours(reminder!.hour, reminder!.minute);
-    DateTimePickerAndroid.open({
-      value: date,
-      mode: 'time',
-      is24Hour: true,
-      onChange: (e, value) => {
-        if (e.type === 'set' && value)
-          vm.reminder({ hour: value.getHours(), minute: value.getMinutes() });
-      },
-    });
+    const value = await picker.time(date);
+    if (value)
+      vm.reminder({ hour: value.getHours(), minute: value.getMinutes() });
   }
   return (
     <Page
@@ -75,23 +72,32 @@ export function RecordEditorScreen() {
               Eintrag mit oder ohne Fotos und Dokumente erfassen.
             </Body>
           )}
+          {repair && (
+            <Body>
+              Die Erinnerung ist nicht bestätigt. Mit Speichern wird sie erneut
+              eingerichtet.
+            </Body>
+          )}
           <Button
             icon={id && !vm.dirty ? 'check_circle_outline' : 'save_outlined'}
             title={
               vm.busy
                 ? 'Wird gespeichert …'
-                : id && !vm.dirty
-                  ? 'Alles gespeichert'
-                  : id
-                    ? 'Änderungen speichern'
-                    : 'Akte speichern'
+                : repair && !vm.dirty
+                  ? 'Erinnerung erneut speichern'
+                  : id && !vm.dirty
+                    ? 'Alles gespeichert'
+                    : id
+                      ? 'Änderungen speichern'
+                      : 'Akte speichern'
             }
-            disabled={vm.busy || !vm.dirty}
+            disabled={vm.busy || (!vm.dirty && !repair)}
             onPress={() => void vm.save()}
           />
         </>
       }
     >
+      {picker.dialog}
       <Stack.Screen
         options={{ title: id ? 'Akte bearbeiten' : 'Akte anlegen' }}
       />
@@ -269,7 +275,7 @@ export function RecordEditorScreen() {
                     secondary
                     icon="schedule"
                     title="Uhrzeit ändern"
-                    onPress={pickTime}
+                    onPress={() => void pickTime()}
                   />
                 </View>
               )}

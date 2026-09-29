@@ -15,6 +15,7 @@ export const attachmentSchema = z
     sha256: z.string().regex(/^[a-f0-9]{64}$/),
     size: z.number().int().positive().max(MAX_FILE_BYTES),
     pages: z.number().int().positive().max(MAX_PDF_PAGES).optional(),
+    source: z.enum(['scanned', 'imported']).optional(),
   })
   .strict();
 export const reminderSchema = z
@@ -83,6 +84,9 @@ export const reportSchema = z
     sha256: z.string().regex(/^[a-f0-9]{64}$/),
     createdAt: timestamp,
     full: z.boolean(),
+    groupId: id.optional(),
+    partIndex: z.number().int().positive().optional(),
+    partCount: z.number().int().min(2).max(20).optional(),
   })
   .strict();
 export const snapshotSchema = z
@@ -205,6 +209,33 @@ export function validateSnapshot(input: unknown): Snapshot {
       !r.file.endsWith('.pdf')
     )
       throw new Error('Ungültiges Protokoll im Backup.');
+    if (
+      (r.groupId || r.partIndex || r.partCount) &&
+      (!r.groupId || !r.partIndex || !r.partCount || r.partIndex > r.partCount)
+    )
+      throw new Error('Ungültige Protokollteile.');
+  }
+  const groups = new Map<string, SavedReport[]>();
+  for (const report of data.reports)
+    if (report.groupId)
+      groups.set(report.groupId, [
+        ...(groups.get(report.groupId) ?? []),
+        report,
+      ]);
+  for (const reports of groups.values()) {
+    const first = reports[0]!;
+    if (
+      new Set(reports.map((r) => r.partIndex)).size !== reports.length ||
+      reports.some(
+        (r) =>
+          r.recordId !== first.recordId ||
+          r.entryId !== first.entryId ||
+          r.createdAt !== first.createdAt ||
+          r.full !== first.full ||
+          r.partCount !== first.partCount,
+      )
+    )
+      throw new Error('Widersprüchliche Protokollteile.');
   }
   return data;
 }

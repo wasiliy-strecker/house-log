@@ -18,7 +18,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrollContext } from './scroll-host';
-import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+import { useMaterialDateTime } from './material-date-time';
+import { localDate } from './date-time-model';
 import { light, useTheme } from './theme';
 import { Icon, type IconName } from './icon';
 import { useFeedback, type MenuAnchor } from './feedback';
@@ -676,34 +677,31 @@ export function DateField({
   optional?: boolean;
   disabled?: boolean;
 }) {
-  const c = useTheme();
-  const date = value ? new Date(value) : new Date();
-  function pick() {
-    DateTimePickerAndroid.open({
-      value: date,
-      mode: 'date',
-      is24Hour: true,
-      onChange: (e, next) => {
-        if (e.type !== 'set' || !next) return;
-        if (time) {
-          setTimeout(
-            () =>
-              DateTimePickerAndroid.open({
-                value: next,
-                mode: 'time',
-                is24Hour: true,
-                onChange: (event, d) => {
-                  if (event.type === 'set' && d) onChange(d.toISOString());
-                },
-              }),
-            100,
-          );
-        } else
-          onChange(
-            `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`,
-          );
-      },
-    });
+  const c = useTheme(),
+    picker = useMaterialDateTime();
+  const date = value ? localDate(value) : new Date();
+  async function pick() {
+    const next = await picker.date(
+      date,
+      optional
+        ? {
+            first: new Date(1800, 0, 1),
+            last: new Date(2100, 11, 31),
+            yearFirst: true,
+            calendarOnly: true,
+            title: 'Einbau / Anschaffung wählen',
+          }
+        : undefined,
+    );
+    if (!next) return;
+    if (time) {
+      next.setHours(date.getHours(), date.getMinutes());
+      const timed = await picker.time(next);
+      if (timed) onChange(timed.toISOString());
+    } else
+      onChange(
+        `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`,
+      );
   }
   return (
     <View
@@ -717,6 +715,7 @@ export function DateField({
         minHeight: 56,
       }}
     >
+      {picker.dialog}
       <Text
         style={{
           position: 'absolute',
@@ -736,7 +735,7 @@ export function DateField({
         accessibilityRole="button"
         accessibilityLabel={label}
         disabled={disabled}
-        onPress={pick}
+        onPress={() => void pick()}
         style={{ flex: 1, padding: 16 }}
       >
         <Text
@@ -772,7 +771,7 @@ export function DateField({
         icon="calendar_today"
         label="Datum auswählen"
         disabled={disabled}
-        onPress={pick}
+        onPress={() => void pick()}
       />
     </View>
   );

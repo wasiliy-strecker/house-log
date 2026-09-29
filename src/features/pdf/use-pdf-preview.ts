@@ -6,6 +6,8 @@ import { useTask } from '../../core/ui/use-task';
 import { errorText } from '../../core/ui/components';
 export function usePdfPreview(id: string) {
   const { viewer, media } = useServices();
+  const [selection, setSelection] = useState({ root: id, part: id });
+  const selected = selection.root === id ? selection.part : id;
   const [pdf, setPdf] = useState<OpenPdf>(),
     [loading, setLoading] = useState(true),
     [retry, setRetry] = useState(0);
@@ -16,14 +18,15 @@ export function usePdfPreview(id: string) {
       let active = true;
       let opened: OpenPdf | undefined;
       setLoading(true);
+      setPdf(undefined);
       viewer
-        .open(id)
+        .open(selected)
         .then((value) => {
           opened = value;
           if (active) {
             setPdf(value);
             setError('');
-          } else void viewer.close(value);
+          } else void viewer.close(value).catch(() => {});
         })
         .catch((e) => {
           if (active) setError(errorText(e));
@@ -37,11 +40,12 @@ export function usePdfPreview(id: string) {
       };
       // Revision/retry tokens intentionally reload persisted data on focus.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [viewer, id, retry, setError]),
+    }, [viewer, selected, retry, setError]),
   );
   return {
     pdf,
     loading,
+    selectPart: (part: string) => setSelection({ root: id, part }),
     ...task,
     retry: () => setRetry((n) => n + 1),
     render: useCallback(
@@ -49,6 +53,10 @@ export function usePdfPreview(id: string) {
         viewer.page(document, index, width),
       [viewer],
     ),
+    shareAll: () =>
+      task.run(async () => {
+        if (pdf) await media.shareMany(pdf.parts);
+      }),
     print: () =>
       task.run(async () => {
         if (pdf) await viewer.print(pdf);

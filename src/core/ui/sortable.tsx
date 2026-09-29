@@ -3,7 +3,7 @@
  * Refs below are read only in those events, layout callbacks and cleanup. */
 /* eslint-disable react-hooks/purity, react-hooks/refs */
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { View, type LayoutRectangle } from 'react-native';
+import { PixelRatio, View, type LayoutRectangle } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useTheme } from './theme';
 import { useScrollHost } from './scroll-host';
@@ -14,12 +14,14 @@ export function Sortable<T extends { id: string }>({
   disabled = false,
   onReorder,
   render,
+  preview,
 }: {
   items: T[];
   columns?: number;
   disabled?: boolean;
   onReorder?: (items: T[]) => void;
   render: (item: T, index: number, canTap: () => boolean) => ReactNode;
+  preview?: (item: T, index: number) => ReactNode;
 }) {
   const c = useTheme(),
     host = useScrollHost(),
@@ -39,6 +41,7 @@ export function Sortable<T extends { id: string }>({
       offset: number;
       originX: number;
       originY: number;
+      pointerX: number;
       pointerY: number;
       viewportY: number;
       over: number;
@@ -70,6 +73,7 @@ export function Sortable<T extends { id: string }>({
         offset: host?.offset.current ?? 0,
         originX,
         originY,
+        pointerX: x,
         pointerY: y,
         viewportY: 0,
         over: index,
@@ -100,12 +104,14 @@ export function Sortable<T extends { id: string }>({
         );
         host.offset.current = next;
         host.ref.current?.scrollTo({ y: next, animated: false });
+        move(s.pointerX, s.pointerY);
       }, 33);
     });
   }
   function move(x: number, y: number) {
     const s = state.current;
     if (!s) return;
+    s.pointerX = x;
     s.pointerY = y;
     const scroll = (host?.offset.current ?? 0) - s.offset;
     const localX = x - s.originX,
@@ -162,18 +168,46 @@ export function Sortable<T extends { id: string }>({
                   columns === 1
                     ? '100%'
                     : width
-                      ? (width - 12 * (columns - 1)) / columns
+                      ? Math.floor(
+                          ((width - 12 * (columns - 1)) / columns) *
+                            PixelRatio.get(),
+                        ) / PixelRatio.get()
                       : '48%',
                 zIndex: active ? 10 : 0,
-                opacity: active ? 0.85 : 1,
-                transform: active
-                  ? [{ translateX: drag.x }, { translateY: drag.y }]
-                  : [],
                 borderRadius: 14,
-                backgroundColor: drag?.over === index ? c.soft : undefined,
+                borderWidth: onReorder ? 2 : 0,
+                borderColor:
+                  drag?.over === index && !active ? c.primary : 'transparent',
               }}
             >
-              {render(item, index, () => Date.now() > suppress.current)}
+              <View style={{ opacity: active ? 0.3 : 1 }}>
+                {render(item, index, () => Date.now() > suppress.current)}
+              </View>
+              {active && (
+                <View
+                  pointerEvents="none"
+                  accessibilityElementsHidden
+                  importantForAccessibility="no-hide-descendants"
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    transform: [{ translateX: drag.x }, { translateY: drag.y }],
+                    borderRadius: 14,
+                    backgroundColor: c.card,
+                    elevation: 8,
+                    shadowColor: '#000',
+                    shadowOpacity: 0.24,
+                    shadowRadius: 8,
+                    overflow: 'hidden',
+                  }}
+                >
+                  {preview
+                    ? preview(item, index)
+                    : render(item, index, () => false)}
+                </View>
+              )}
             </View>
           </GestureDetector>
         );

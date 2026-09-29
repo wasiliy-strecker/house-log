@@ -6,6 +6,59 @@ in den jeweiligen Abschnitten gesondert beschrieben.
 Dieses Protokoll unterscheidet automatisierte Tests, tatsächliche Android-Prüfungen
 und noch offene Gerätetests. Ein erfolgreicher Build ersetzt keine Scannerprüfung.
 
+## Bedienabgleich vom 29.09.2026
+
+Auf Nutzerwunsch keine umfangreiche Geräte-Testserie, kein Emulator und keine
+weiteren Kamera-, Scanner- oder Galerieimporte. Automatische Prüfungen nutzen
+synthetische Dateien. Visuelle Abnahme und Gestenprüfung übernimmt der Nutzer.
+
+Bestanden: Formatierung, ESLint und TypeScript strict. 43 gezielte Tests in
+`gallery`, `ui-parity`, `multipart`, `pdf-limits`, `presentation` und `workflows`.
+Nach Ergänzung der Teildeckblätter wurden die sieben betroffenen PDF-Tests erneut
+ausgeführt und bestanden. Geprüft sind insbesondere Kalendergrenzen, lokale
+Datumswerte, Erinnerungsreparatur, der echte Galerie-Pager mit simulierten nativen
+Komponenten, gemischte Wisch-/Pfeilnavigation ohne Pager-Neustart, Originalseiten
+über Teilgrenzen, Transaktionsabbruch am zweiten Teil und Backup-Wiederherstellung
+mit Herkunft und Teilzuordnung. Genau 2000 Seiten einschließlich Teildeckblättern
+werden akzeptiert. Überschreitungen hinterlassen keine halbfertigen Protokolle.
+
+`npm run check:native`: 40 JVM-Tests bestanden. Eigene native Lint-Prüfung ohne
+Fehler, 30 Warnungen. Der dokumentierte Ausschluss der beiden fehlerhaften
+Abhängigkeits-Analysetasks bleibt bestehen. `npm run build:preview` und der
+abschließende inkrementelle `:app:assembleDevRelease` nach den letzten UI-/PDF-
+Anpassungen bestanden. Keine Store-Signierung, Veröffentlichung oder Versionsanhebung.
+
+Manuelle Abnahme für den Nutzer:
+
+1. Datum und Uhrzeit öffnen. Kalender, Jahreswahl, Texteingabe und Zifferblatt
+   vergleichen. Bestätigen muss übernehmen, Abbrechen muss die Eingabe erhalten.
+2. Mehrere Fotos öffnen. Wischen, Pfeile, Pinch-Zoom und Zurück kombinieren.
+   Fotos und PDFs im Formular länger halten und verschieben. Vorschau, Zielrahmen
+   und gespeicherte Reihenfolge prüfen. Fotohinweise auf eine Zwischenhöhe ziehen,
+   Inhalt scrollen und herunterziehen zum Schließen.
+3. Eine vorhandene PDF öffnen und direkt vergrößern, verschieben und blättern.
+   Bei neu importierten oder gescannten PDFs Herkunft und Dreipunkt-Menü prüfen.
+   Zum Teilen und Drucken müssen die Originalseiten erhalten bleiben.
+4. Nur bei ohnehin vorhandenen umfangreichen Unterlagen: Protokoll über 100 Seiten
+   erstellen, Teildeckblätter, Teilwahl, „Diesen Teil teilen“ und „Alle teilen“ prüfen.
+   Die Auswahl zum Teilen kann ohne Versenden abgebrochen werden.
+5. Falls eine Erinnerung als nicht bestätigt erscheint: Die unveränderte Akte
+   bearbeiten und „Erinnerung erneut speichern“ verwenden. Zusätzlich Hellmodus,
+   Dunkelmodus und größere Schrift bei Bedarf ansehen.
+
+Die automatischen Prüfungen ersetzen keine visuelle Gleichheitsprüfung beider
+Apps. Reale Pinch-/Drag-Gesten, die App-Dialoge und das neue Mehrfach-Teilen sind
+in dieser Aufgabe noch nicht auf dem Gerät abgenommen.
+
+Installiert auf HONOR BVL-N49: `com.appfactory.house_log.dev`, Version 1.0.0 (1),
+nicht debuggbarer Preview-Build. Paket, bisherige Version, Debug-Flag, Installer
+und übereinstimmende Zertifikate vor dem Update geprüft. Installation mit
+`adb install -r -t -g --no-streaming` erfolgreich. App-Prozess nach Start vorhanden,
+keine ReactNativeJS-/AndroidRuntime-Fehler im gefilterten Startprotokoll.
+Das Gerät war nicht interaktiv, deshalb keine zusätzliche Bildschirmabnahme.
+
+APK: `build/releases/dev/Hausakte-Dev-1.0.0-1-ui-parity-20260929-0830.apk`.
+
 ## Release-Korrekturen vom 29.09.2026
 
 Die vom Nutzer gewählten bestehenden Grenzen bleiben erhalten. Store-Signierung,

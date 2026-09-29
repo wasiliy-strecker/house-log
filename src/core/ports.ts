@@ -32,6 +32,7 @@ export interface Repository {
   saveRecord(record: HouseRecord): Promise<void>;
   saveEntry(entry: HouseEntry, draftId: string): Promise<void>;
   saveReport(report: SavedReport): Promise<void>;
+  saveReports(reports: SavedReport[]): Promise<void>;
   deleteRecord(id: string): Promise<void>;
   deleteEntry(id: string): Promise<void>;
   deleteReport(id: string): Promise<void>;

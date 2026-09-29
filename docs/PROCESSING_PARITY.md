@@ -606,3 +606,51 @@ verwendet beim Öffnen der Benachrichtigungseinstellungen die App-Detailseite.
 Die eigene native Lint-Prüfung bricht bei Fehlern ab. Expo und die vom SDK
 empfohlenen Teilpakete wurden innerhalb SDK 57 aktualisiert. Paketkennungen,
 Signierung und Versionsnummer bleiben unverändert. Store-Signierung ist ausgenommen.
+
+## Bedienabgleich vom 29.09.2026
+
+Erneut gelesene Referenz: Fahrzeugakte `78abe0247f026c5078f99792d175398c40baa47a`.
+Die folgenden Änderungen ersetzen die früher beschriebenen Zwischenlösungen.
+Fahrzeugakte selbst bleibt unverändert.
+
+Datum und Uhrzeit verwenden eigene Material-Dialoge mit Kalender, Jahreswahl,
+Texteingabe und 24-Stunden-Zifferblatt. Kalendermaße und Tagesfelder folgen
+Flutter Material 3. Das Haus-Einbaudatum bleibt optional mit dem fachlich passenden
+Zeitraum 1800 bis 2100. Reine Datumswerte werden ohne UTC-Tagesverschiebung gelesen.
+Die nicht mehr verwendeten Systempicker- und Image-Viewing-Pakete sind entfernt.
+
+Die Galerie behält ihren Pager bei Wisch- und Pfeilbedienung. Pfeile animieren den
+horizontalen Wechsel in 200 ms. Bilder lassen sich direkt bis fünffach vergrößern
+und verschieben. Beim Sortieren bleibt das Original mit 30 Prozent Deckkraft
+stehen. Eine schwebende Vorschau und der umrandete Zielplatz zeigen den Wechsel.
+Die Fotohinweise beginnen bei 70 Prozent und lassen sich frei bis 95 Prozent
+aufziehen. Herunterziehen bis zur Mindesthöhe von 25 Prozent schließt sie.
+
+PDFs öffnen auf einer durchgehend zoombaren, scrollbaren nativen Fläche.
+Es gibt keinen zusätzlichen Bilddialog pro Seite. Die Vorschau verwendet einen
+begrenzten Bitmap-Cache. Original-PDFs bleiben unverändert und werden direkt geteilt
+oder gedruckt. Neue PDF-Anhänge speichern die Herkunft „Gescannt“ oder „Importiert“.
+Bei älteren Anhängen wird keine unbekannte Herkunft erfunden. PDF-Menüs entsprechen
+der schlichten Textdarstellung der Vorlage und bieten Verschieben nur bei mehreren
+Dokumenten an. Unbestätigte oder fehlgeschlagene Erinnerungsplanungen können auch
+ohne Formularänderung erneut gespeichert werden.
+
+Große neue Protokolle werden in höchstens 100 Seiten pro Datei geteilt.
+Jeder Teil erhält wie die Vorlage ein Zuordnungsdeckblatt mit Teilnummer,
+Gesamtzahl und Fortsetzungshinweis. Die Vorschau bietet Teilwahl, Drucken,
+einzelnes Teilen und „Alle teilen“. Teilnamen bleiben beim gemeinsamen Teilen
+verständlich und geordnet. Nach dem Löschen eines Teils werden die übrigen weiter
+angezeigt. Ein unvollständiger Satz kann nur einzeln geteilt werden.
+Alle Teil-Dateien werden vorbereitet, bevor eine gemeinsame SQLite-Transaktion sie
+veröffentlicht. Ein Fehler bereinigt neue, unreferenzierte Dateien. Die Teilzuordnung
+und neue Dokumentherkunft werden im Backup erhalten. Alte Datensätze ohne diese
+optionalen Angaben bleiben lesbar. Bereits gespeicherte Protokolle ändern sich nicht.
+
+Die vereinbarten Hausakte-Grenzen bleiben bestehen: 2000 Seiten insgesamt,
+einschließlich aller Deck- und Trennseiten, 50 MiB je PDF, 64 MiB Quellanhänge
+und die bestehenden Backup-Grenzen. Anders als Fahrzeugakte erlaubt die Aufteilung
+keinen unbegrenzten Gesamtexport. Bei einem ansonsten drei Seiten umfassenden
+Protokoll passen jetzt maximal 1977 Originalseiten plus 20 Teildeckblätter in
+die 2000-Seiten-Grenze. Unterschiedliche Umbruch- und Teilgrenzen beider PDF-Engines
+bleiben möglich. Gleiche Abläufe sind implementiert. Pixelgleichheit und sämtliche
+Gesten sind ohne die noch ausstehende Nutzerabnahme nicht nachgewiesen.

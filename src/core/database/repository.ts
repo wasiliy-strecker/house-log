@@ -237,6 +237,11 @@ export class SqlRepository implements Repository {
   saveReport(report: SavedReport) {
     return this.write(() => this.putReport(report));
   }
+  saveReports(reports: SavedReport[]) {
+    return this.write(async () => {
+      for (const report of reports) await this.putReport(report);
+    });
+  }
   deleteRecord(id: string) {
     return this.write(() => this.db.run('DELETE FROM records WHERE id=?', id));
   }

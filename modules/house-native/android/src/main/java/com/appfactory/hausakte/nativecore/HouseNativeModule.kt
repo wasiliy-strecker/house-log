@@ -20,9 +20,15 @@ class HouseNativeModule : Module() {
     private val context get() = requireNotNull(appContext.reactContext)
     override fun definition() = ModuleDefinition {
         Name("HouseNative")
+        View(HousePdfView::class) {
+            Prop("session") { view: HousePdfView, id: String -> view.open(previewStore(), id) }
+        }
         AsyncFunction("openPdfPreview") { uri: String -> previewStore().open(uri) }
         AsyncFunction("renderPdfPage") { session: String, index: Int, width: Int -> previewStore().render(session, index, width) }
         AsyncFunction("closePdfPreview") { session: String -> previewStore().close(session) }
+        AsyncFunction("sharePdfs") { uris: List<String> ->
+            context.startActivity(pdfShareIntent(context, uris))
+        }.runOnQueue(Queues.MAIN)
         AsyncFunction("printPdf") { uri: String, name: String ->
             val file = privateDocument(context, uri)
             val activity = requireNotNull(appContext.currentActivity)

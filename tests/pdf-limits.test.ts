@@ -16,7 +16,7 @@ async function document(pages: number) {
   return pdf.save();
 }
 
-it.each([1997, 1998, 2000])(
+it.each([1977, 1978, 2000])(
   'enforces the final history page count for %i source pages without persisting partial reports',
   async (pages) => {
     const f = await fixture();
@@ -35,17 +35,28 @@ it.each([1997, 1998, 2000])(
     await f.house.saveEntry(draft);
     const before = await f.repo.snapshot();
     const beforeFiles = await f.vault.list();
-    if (pages === 1997) {
+    if (pages === 1977) {
       const report = await f.house.createReport(r.id, null, true);
-      expect(
-        (await inspectPdf(await f.vault.read(report.file))).getPageCount(),
-      ).toBe(2000);
+      const parts = (await f.repo.snapshot()).reports;
+      expect(report.partIndex).toBe(1);
+      expect(parts).toHaveLength(20);
+      expect(new Set(parts.map((part) => part.groupId)).size).toBe(1);
+      let pages = 0;
+      for (const part of parts) {
+        const count = (
+          await inspectPdf(await f.vault.read(part.file))
+        ).getPageCount();
+        expect(count).toBe(100);
+        pages += count;
+      }
+      expect(pages).toBe(2000);
       const backup = await f.backup.create('Synthetic PDF password');
       const decoded = await f.backup.codec.decode(
         backup,
         'Synthetic PDF password',
       );
-      expect(decoded.data.reports).toHaveLength(1);
+      expect(decoded.data.reports).toHaveLength(20);
+      expect(decoded.data.reports).toEqual(parts);
     } else {
       await expect(f.house.createReport(r.id, null, true)).rejects.toThrow(
         /2000 Seiten/,

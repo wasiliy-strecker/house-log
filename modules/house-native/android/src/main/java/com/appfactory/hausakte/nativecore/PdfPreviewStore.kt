@@ -43,6 +43,14 @@ class PdfPreviewStore(private val context: Context) {
     }
 
     @Synchronized
+    fun dimensions(id: String): List<Pair<Int, Int>> {
+        val source = requireNotNull(sessions[id]) { "Die PDF-Vorschau wurde geschlossen." }
+        return withRenderer(source) { renderer ->
+            (0 until renderer.pageCount).map { index -> renderer.openPage(index).use { it.width to it.height } }
+        }
+    }
+
+    @Synchronized
     fun render(id: String, index: Int, requestedWidth: Int): String {
         val source = requireNotNull(sessions[id]) { "Die PDF-Vorschau wurde geschlossen." }
         val width = requestedWidth.coerceIn(256, 2048)

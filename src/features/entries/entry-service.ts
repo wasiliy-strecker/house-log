@@ -16,8 +16,10 @@ import type {
   Repository,
   ReminderPort,
 } from '../../core/ports';
+import { PDFDocument } from 'pdf-lib';
 import { SerialQueue } from '../../core/ports';
 import { digest } from '../../core/files/integrity';
+import { checkPdfPages } from '../../core/files/limits';
 import {
   inspectPdf,
   MAX_FILE_BYTES,
@@ -104,6 +106,7 @@ export class HouseService {
     bytes: Uint8Array,
     kind: Attachment['kind'],
     name: string,
+    source?: Attachment['source'],
   ): Promise<Attachment> {
     if (!bytes.length || bytes.length > MAX_FILE_BYTES)
       throw new Error('Die Datei ist leer oder größer als 50 MB.');
@@ -118,7 +121,7 @@ export class HouseService {
       file,
       sha256: digest(bytes),
       size: bytes.length,
-      ...(pages ? { pages } : {}),
+      ...(pages ? { pages, ...(source ? { source } : {}) } : {}),
     };
   }
   saveEntry(
@@ -195,22 +198,61 @@ export class HouseService {
         kind: entryId ? 'single' : 'history',
         createdAt,
       });
-      const file = await this.vault.put(bytes, 'pdf');
+      const source = await inspectPdf(bytes);
+      // A multipart file reserves one of its 100 pages for its own cover.
+      const partCount =
+        source.getPageCount() <= 100
+          ? 1
+          : Math.ceil(source.getPageCount() / 99);
+      checkPdfPages(
+        source.getPageCount() + (partCount > 1 ? partCount : 0),
+        true,
+      );
+      const groupId = partCount > 1 ? this.env.id() : undefined;
+      const files: string[] = [],
+        reports: SavedReport[] = [];
       try {
-        const report: SavedReport = {
-          id: this.env.id(),
-          recordId,
-          entryId,
-          name: `${record.name.slice(0, 200)} · ${entryId ? 'Einzelprotokoll' : 'Gesamtprotokoll'} · ${full ? 'vollständig' : 'kompakt'}`,
-          file,
-          sha256: digest(bytes),
-          createdAt,
-          full,
-        };
-        await this.repository.saveReport(report);
-        return report;
+        for (let index = 0; index < partCount; index++) {
+          let part = bytes;
+          if (partCount > 1) {
+            const document = await PDFDocument.create();
+            await this.pdf.addPartCover(
+              document,
+              record,
+              index + 1,
+              partCount,
+              createdAt,
+            );
+            const indices = source
+              .getPageIndices()
+              .slice(index * 99, (index + 1) * 99);
+            for (const page of await document.copyPages(source, indices))
+              document.addPage(page);
+            part = await document.save();
+          }
+          if (part.length > MAX_FILE_BYTES)
+            throw new Error(
+              'Der Protokollteil überschreitet die Grenze von 50 MB.',
+            );
+          const file = await this.vault.put(part, 'pdf');
+          files.push(file);
+          reports.push({
+            id: this.env.id(),
+            recordId,
+            entryId,
+            name: `${record.name.slice(0, 200)} · ${entryId ? 'Einzelprotokoll' : 'Gesamtprotokoll'} · ${full ? 'vollständig' : 'kompakt'}${partCount > 1 ? ` · Teil ${index + 1} von ${partCount}` : ''}`,
+            file,
+            sha256: digest(part),
+            createdAt,
+            full,
+            ...(groupId ? { groupId, partIndex: index + 1, partCount } : {}),
+          });
+        }
+        // Every part is prepared before a single transaction publishes the group.
+        await this.repository.saveReports(reports);
+        return reports[0]!;
       } catch (error) {
-        await this.cleanup([file]);
+        await this.cleanup(files);
         throw error;
       }
     });

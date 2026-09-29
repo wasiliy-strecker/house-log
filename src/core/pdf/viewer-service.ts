@@ -1,3 +1,4 @@
+import type { SavedReport } from '../domain/models';
 import type { HouseService } from '../../features/entries/entry-service';
 import type { HouseNative, PdfSession } from '../native/house-native';
 import { verifiedFile } from '../files/integrity';
@@ -9,6 +10,7 @@ export type OpenPdf = {
   uri: string;
   kind: 'attachment' | 'report';
   preview: PdfSession;
+  parts: SavedReport[];
 };
 export class PdfViewerService {
   constructor(
@@ -35,6 +37,13 @@ export class PdfViewerService {
       file: item.file,
       sha256: item.sha256,
       uri,
+      parts: report?.groupId
+        ? snapshot.reports
+            .filter((r) => r.groupId === report.groupId)
+            .sort((a, b) => a.partIndex! - b.partIndex!)
+        : report
+          ? [report]
+          : [],
       kind: report ? 'report' : 'attachment',
       preview: await this.native.openPdfPreview(uri),
     };

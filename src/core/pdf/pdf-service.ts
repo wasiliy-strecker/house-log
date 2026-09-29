@@ -222,6 +222,42 @@ export class PdfService {
     private fontBytes: () => Promise<ReportFontBytes>,
   ) {}
 
+  async addPartCover(
+    pdf: PDFDocument,
+    record: HouseRecord,
+    index: number,
+    total: number,
+    createdAt: string,
+  ) {
+    pdf.registerFontkit(fontkit);
+    const bytes = await this.fontBytes();
+    const fonts = {
+      regular: await pdf.embedFont(bytes.regular, { subset: true }),
+      bold: await pdf.embedFont(bytes.bold, { subset: true }),
+    };
+    const cover = new ReportLayout(pdf, fonts, undefined, true);
+    cover.text('HAUSAKTE', { size: 24, bold: true });
+    cover.gap(24);
+    cover.text(record.name, { size: 20 });
+    cover.gap(16);
+    cover.text(`Hausprotokoll – Teil ${index} von ${total}`, { size: 18 });
+    cover.gap(16);
+    cover.text(`Erstellt am ${dateTime(createdAt)}`);
+    cover.gap(24);
+    cover.text(
+      `Dieser Teil gehört zu einem zusammenhängenden Protokoll. Bitte alle ${total} Teile gemeinsam aufbewahren.`,
+    );
+    if (index > 1) {
+      cover.gap(12);
+      cover.text(
+        `Fortsetzung aus Teil ${index - 1}. Einträge oder Dokumente können über die Teilgrenze hinweg fortgesetzt werden.`,
+      );
+    }
+    pdf.setTitle(`Hausprotokoll · ${record.name} · Teil ${index} von ${total}`);
+    pdf.setAuthor('Hausakte');
+    pdf.setCreationDate(new Date(createdAt));
+  }
+
   async create(
     record: HouseRecord,
     entries: HouseEntry[],

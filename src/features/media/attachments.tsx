@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { Image, Pressable, View, Text } from 'react-native';
-import ImageViewing from 'react-native-image-viewing';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Image, Pressable, View } from 'react-native';
+import { PhotoViewer } from './photo-viewer';
 import { router } from 'expo-router';
 import {
   Body,
@@ -48,14 +47,8 @@ export function PhotoGallery({
   actions?: AttachmentActions;
 }) {
   const { house } = useServices();
-  const c = useTheme(),
-    feedback = useFeedback(),
-    safe = useSafeAreaInsets();
-  const [gallery, setGallery] = useState<{
-      index: number;
-      request: number;
-    } | null>(null),
-    [page, setPage] = useState(0);
+  const feedback = useFeedback();
+  const [gallery, setGallery] = useState<number | null>(null);
   async function menu(a: Attachment, index: number, anchor?: MenuAnchor) {
     const selected = await feedback.choose({
       title: `Foto ${index + 1} bearbeiten`,
@@ -106,13 +99,7 @@ export function PhotoGallery({
     }
   }
   function show(index: number) {
-    setPage(index);
-    // Swipes update the visible page inside ImageViewing. An explicit jump
-    // must also work when its target equals the viewer's original start index.
-    setGallery((previous) => ({
-      index,
-      request: (previous?.request ?? 0) + 1,
-    }));
+    setGallery(index);
   }
   return (
     <>
@@ -124,6 +111,13 @@ export function PhotoGallery({
           columns={photos.length === 1 ? 1 : 2}
           disabled={actions?.busy}
           onReorder={actions?.reorder}
+          preview={(a) => (
+            <PhotoThumbnail
+              source={{ uri: house.vault.uri(a.file) }}
+              resizeMode="contain"
+              style={{ width: '100%', aspectRatio: 4 / 3 }}
+            />
+          )}
           render={(a, index, canTap) => (
             <View>
               <Pressable
@@ -170,66 +164,16 @@ export function PhotoGallery({
           )}
         />
       )}
-      <ImageViewing
-        key={gallery?.request ?? 0}
-        images={photos.map((a) => ({ uri: house.vault.uri(a.file) }))}
-        imageIndex={gallery?.index ?? 0}
-        visible={gallery !== null}
-        backgroundColor={c.background}
-        swipeToCloseEnabled={false}
-        onRequestClose={() => setGallery(null)}
-        onImageIndexChange={setPage}
-        HeaderComponent={({ imageIndex }) => (
-          <View style={{ paddingTop: safe.top, backgroundColor: c.background }}>
-            <View
-              style={{
-                height: 56,
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 8,
-              }}
-            >
-              <IconButton
-                icon="arrow_back"
-                label="Fotogalerie schließen"
-                onPress={() => setGallery(null)}
-              />
-              <Text
-                style={{ fontFamily: 'Roboto', fontSize: 22, color: c.ink }}
-              >
-                Foto {imageIndex + 1} von {photos.length}
-              </Text>
-            </View>
-          </View>
-        )}
-        FooterComponent={() => (
-          <View
-            style={{
-              paddingBottom: safe.bottom,
-              backgroundColor: c.background,
-              flexDirection: 'row',
-              justifyContent: 'space-evenly',
-              alignItems: 'center',
-            }}
-          >
-            <IconButton
-              icon="chevron_left"
-              label="Vorheriges Foto"
-              disabled={page === 0}
-              onPress={() => show(page - 1)}
-            />
-            <Body>
-              {page + 1} / {photos.length}
-            </Body>
-            <IconButton
-              icon="chevron_right"
-              label="Nächstes Foto"
-              disabled={page + 1 === photos.length}
-              onPress={() => show(page + 1)}
-            />
-          </View>
-        )}
-      />
+      {gallery !== null && (
+        <PhotoViewer
+          images={photos.map((a) => ({
+            id: a.id,
+            uri: house.vault.uri(a.file),
+          }))}
+          initialIndex={gallery}
+          close={() => setGallery(null)}
+        />
+      )}
     </>
   );
 }
@@ -311,30 +255,20 @@ export function Documents({
     const action = await feedback.choose({
       title: 'Dokument bearbeiten',
       anchor,
+      optionStyle: 'plain',
       options: [
-        {
-          value: 'earlier',
-          label: 'Nach vorne',
-          icon: 'chevron_left',
-          disabled: index === 0,
-        },
-        {
-          value: 'later',
-          label: 'Nach hinten',
-          icon: 'chevron_right',
-          disabled: index + 1 === documents.length,
-        },
-        {
-          value: 'replace',
-          label: 'Dokument ersetzen',
-          icon: 'description_outlined',
-        },
-        {
-          value: 'remove',
-          label: 'Dokument entfernen',
-          icon: 'delete_outline',
-          danger: true,
-        },
+        ...(documents.length > 1
+          ? [
+              { value: 'earlier', label: 'Nach vorne', disabled: index === 0 },
+              {
+                value: 'later',
+                label: 'Nach hinten',
+                disabled: index + 1 === documents.length,
+              },
+            ]
+          : []),
+        { value: 'replace', label: 'Dokument ersetzen' },
+        { value: 'remove', label: 'Dokument entfernen' },
       ],
     });
     if (action === 'earlier') actions?.move(a.id, -1);
@@ -401,6 +335,9 @@ export function Documents({
                     <Body style={{ fontSize: 16 }}>{a.name}</Body>
                     <Body muted>
                       {a.pages} {a.pages === 1 ? 'Seite' : 'Seiten'}
+                      {a.source
+                        ? ` · ${a.source === 'scanned' ? 'Gescannt' : 'Importiert'}`
+                        : ''}
                     </Body>
                   </View>
                 </Pressable>
