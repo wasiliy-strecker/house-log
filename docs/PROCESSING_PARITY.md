@@ -29,7 +29,7 @@ Die bestehenden Flutter-Apps bleiben unverändert. Der Workspace besitzt kein
 
 ## Technische Entscheidungen
 
-Expo SDK 57.0.24 mit React Native 0.86.3 und React 19.2.3. Expo-Pakete werden
+Expo SDK 57.0.25 mit React Native 0.86.3 und React 19.2.3. Expo-Pakete werden
 durch `expo install` passend aufgelöst. Das Lockfile enthält die genauen Versionen.
 TypeScript ist strict mit zusätzlichem `noUncheckedIndexedAccess`.
 Die offiziellen [Expo-Kompatibilitätstabellen](https://docs.expo.dev/versions/latest/)
@@ -123,7 +123,9 @@ Fotos stehen im vollständigen Protokoll jeweils vollständig auf einer Seite.
 Die gespeicherte Foto- und PDF-Reihenfolge bleibt in Formular, Galerie und Protokoll gleich.
 
 Die JS-Verarbeitung ist begrenzt auf 50 MB je Import/Protokoll, 200 Anhänge je Eintrag,
-64 MB Quellanhänge je Protokoll und 128 MB je Backup. Größere Datenmengen benötigen
+64 MB Quellanhänge je Protokoll und 128 MiB je Backup. PDFs einschließlich
+fertiger Protokolle sind auf 2000 Seiten begrenzt. Backup-Textdaten und
+Dateiverzeichnis dürfen zusammen 16 MiB enthalten, mit höchstens 30000 Dateien. Größere Datenmengen benötigen
 eine spätere Streaming-Implementierung. Das Mindestpasswort ist zehn Zeichen.
 Die Unterschiede werden in der App sichtbar erklärt, statt still Daten auszulassen.
 
@@ -580,3 +582,27 @@ Da Hausakte bisher keine Lizenzdatei besitzt, behauptet der Quellcode-Link
 keine MPL-2.0-Lizenz. Auf ausdrückliche Freigabe wurde ausschließlich `PRIVACY.md`
 im öffentlichen Repository veröffentlicht. Die übrigen lokalen Änderungen
 wurden nicht hochgeladen.
+
+## Release-Korrekturen vom 29.09.2026
+
+Die bestehenden Grenzen bleiben erhalten. Der Backup-Export prüft jetzt dieselben
+Dateiinhalte, Referenzen und Grenzen wie der Import. Die Textgröße und gesamte
+Containergröße werden vor der Verschlüsselung geprüft. Authentifizierte ältere
+Backups mit zu großen Textdaten erhalten einen konkreten Grenzhinweis. Es findet
+keine teilweise Wiederherstellung statt.
+
+Neue Protokolle zählen Deckblätter, Trennseiten und Originalseiten gemeinsam.
+Die Prüfung erfolgt bereits beim Seitenaufbau und erneut vor dem Speichern.
+Überzählige Seiten führen weder zu einer Teil-Datei noch zu einem Datenbankeintrag.
+Ein bereits vorhandenes übergroßes Protokoll wird nicht verändert. Der Backupfehler
+nennt dessen Dateinamen.
+
+Die Galerie trennt den durch Wischen angezeigten Index von expliziten Sprüngen
+über die Pfeile. Damit funktioniert auch Wischen zum zweiten Foto und Zurück
+zum zuerst geöffneten Foto mit übereinstimmenden Zählern.
+
+App und natives Modul aktivieren Core Library Desugaring 2.1.5. Android 7
+verwendet beim Öffnen der Benachrichtigungseinstellungen die App-Detailseite.
+Die eigene native Lint-Prüfung bricht bei Fehlern ab. Expo und die vom SDK
+empfohlenen Teilpakete wurden innerhalb SDK 57 aktualisiert. Paketkennungen,
+Signierung und Versionsnummer bleiben unverändert. Store-Signierung ist ausgenommen.

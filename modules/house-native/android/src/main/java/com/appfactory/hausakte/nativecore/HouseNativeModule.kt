@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.os.ParcelFileDescriptor
-import android.provider.Settings
 import androidx.core.content.FileProvider
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.functions.Queues
@@ -108,10 +107,7 @@ class HouseNativeModule : Module() {
             ReminderNotifier.showTest(context, null, "Hausakte", "house", "Test", null, null, punctual)
         }
         AsyncFunction("openReminderSettings") { exact: Boolean ->
-            val intent = if (exact && android.os.Build.VERSION.SDK_INT >= 31) Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
-                .setData(Uri.parse("package:${context.packageName}"))
-            else Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-            context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            context.startActivity(reminderSettingsIntent(context, exact))
         }.runOnQueue(Queues.MAIN)
         OnActivityEntersForeground { ReminderScheduler.rescheduleAll(context) }
     }

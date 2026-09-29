@@ -206,6 +206,17 @@ androidComponents {
 android.productFlavors.dev.signingConfig = android.signingConfigs.debug
 `;
     }
+    if (!source.includes('// Hausakte Android 7 time API support')) {
+      source += `
+// Hausakte Android 7 time API support
+android {
+    compileOptions { coreLibraryDesugaringEnabled true }
+}
+dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
+}
+`;
+    }
     mod.modResults.contents = source;
     return mod;
   });

@@ -6,6 +6,7 @@ import {
   type PDFPage,
   type RGB,
 } from 'pdf-lib';
+import { checkPdfPages } from '../files/limits';
 
 const PAGE_WIDTH = 595.2756;
 const PAGE_HEIGHT = 841.8898;
@@ -50,6 +51,7 @@ export class ReportLayout {
   }
 
   private newPage() {
+    checkPdfPages(this.pdf.getPageCount() + 1, true);
     this.page = this.pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
     this.pages.push(this.page);
     this.top = this.start;

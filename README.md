@@ -162,9 +162,14 @@ npm run typecheck
 npm test
 npx expo-doctor
 npx expo export --platform android --output-dir build/metro-check
-cd android
-./gradlew :house-native:testDebugUnitTest --max-workers=4
+npm run check:native
 ```
+
+`check:native` führt JVM-Tests und Lint des eigenen Android-Moduls aus. Zwei
+Lint-Analysetasks der SDK-57-Abhängigkeiten Worklets und Expo Modules Core werden
+wegen eines reproduzierten Kotlin-Analyseabbruchs („Cannot find a KaModule“)
+ausgenommen. Eigene Lint-Fehler bleiben fatal. Das ist kein vollständiger
+Lint-Nachweis aller Abhängigkeiten.
 
 Die Tests verwenden echte SQLite-Dateien über Node SQLite mit derselben
 Repository- und Migrationsimplementierung wie Android. PDF-Prüfungen verwenden
@@ -182,7 +187,8 @@ Für den Android-Ablauf im laufenden Dev-Build öffnen:
 privaten Dateien, nativer Fotooptimierung und Android PdfRenderer aus. Er benutzt
 eine eigene synthetische Testdatenbank. Ergebnis im privaten App-Verzeichnis
 `files/android-check-result.json`. Testdateien liegen separat in `files/vault/check-*`.
-Diese Diagnose ist nur im Dev-Build ausführbar und nicht Teil des normalen Menüs.
+Diese Diagnose ist nur im Live-Build `devDebug` mit `__DEV__` ausführbar.
+Die eigenständige Testversion `devRelease` enthält keinen aktiven Diagnosezugang.
 
 Ein grundlegender UI-Ablauf lässt sich im laufenden Emulator wiederholen:
 
@@ -200,15 +206,22 @@ transitive Sicherheitslücken. Expo Doctor, Metro und Android prüfen diese Komb
 
 ## Grenzen
 
-Android ab API 24. Kein iOS- oder Browser-Funktionsnachweis. Expo Go reicht wegen
+Android ab API 24. App und natives Modul verwenden Core Library Desugaring 2.1.5
+für die Kalenderberechnung auf Android 7. Die Benachrichtigungseinstellungen
+öffnen dort die verfügbaren App-Einstellungen. Kein iOS- oder Browser-Funktionsnachweis. Expo Go reicht wegen
 des eigenen nativen Moduls nicht aus. Scanner benötigt Google Play Services,
 ausreichend RAM und beim ersten Start möglicherweise einen Komponenten-Download.
 Ein unterbrochener Scan muss nach Prozessverlust neu gestartet werden.
 
 Importdateien höchstens 50 MB, maximal 200 Anhänge pro Eintrag. Protokolle dürfen
-höchstens 64 MB Quelldateien und 50 MB Ausgabe umfassen. Backup derzeit höchstens
-128 MB und zehn Zeichen Mindestpasswort. Große Bestände benötigen eine spätere
-Streaming-Erweiterung. Diese Grenzen werden ausdrücklich gemeldet.
+höchstens 64 MB Quelldateien und 50 MB Ausgabe umfassen. Importierte PDFs und
+fertige Protokolle sind auf 2000 Seiten begrenzt, einschließlich neu erzeugter
+Deck- und Trennseiten. Backup derzeit höchstens 128 MiB insgesamt, 16 MiB für
+Textdaten und Dateiverzeichnis sowie 30000 Dateien. Das Mindestpasswort beträgt
+zehn Zeichen. Export und Import prüfen dieselben Inhaltsgrenzen. Ältere
+übergroße Protokolle bleiben lokal erhalten und werden bei einem gescheiterten
+Backup namentlich gemeldet. Große Bestände benötigen eine spätere
+Streaming-Erweiterung.
 
 Die Abweichungen zur Fahrzeugakte stehen in
 [PROCESSING_PARITY.md](docs/PROCESSING_PARITY.md). Tatsächlich ausgeführte Prüfungen

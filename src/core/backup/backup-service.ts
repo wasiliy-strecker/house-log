@@ -12,6 +12,7 @@ import {
 } from '../domain/models';
 import { digest, verifiedFile } from '../files/integrity';
 import { inspectPdf } from '../pdf/pdf-service';
+import { ContentLimitError, MAX_FILE_BYTES } from '../files/limits';
 import type { Environment } from '../ports';
 import type { HouseService } from '../../features/entries/entry-service';
 
@@ -20,6 +21,23 @@ const decoder = new TextDecoder('utf-8', { fatal: true });
 const MAGIC = encoder.encode('HABACK01');
 const ITERATIONS = 600000;
 export const MAX_BACKUP_BYTES = 128 * 1024 * 1024;
+export const MAX_MANIFEST_BYTES = 16 * 1024 * 1024;
+export const MAX_BACKUP_FILES = 30000;
+// 40-byte authenticated header, 16-byte tag and 4-byte manifest length.
+const CONTAINER_OVERHEAD = 60;
+export function checkBackupSize(
+  manifestBytes: number,
+  fileBytes: number,
+): void {
+  if (manifestBytes > MAX_MANIFEST_BYTES)
+    throw new ContentLimitError(
+      'Die Textdaten und das Dateiverzeichnis des Backups überschreiten die Grenze von 16 MiB. Es wurde keine Sicherung erstellt oder übernommen.',
+    );
+  if (manifestBytes + fileBytes + CONTAINER_OVERHEAD > MAX_BACKUP_BYTES)
+    throw new ContentLimitError(
+      'Das Backup überschreitet die Grenze von 128 MB.',
+    );
+}
 export type PasswordKey = (
   password: string,
   salt: Uint8Array,
@@ -36,16 +54,98 @@ const descriptorsSchema = z
     z
       .object({
         file: fileKey,
-        size: z
-          .number()
-          .int()
-          .positive()
-          .max(50 * 1024 * 1024),
+        size: z.number().int().positive().max(MAX_FILE_BYTES),
         sha256: z.string().regex(/^[a-f0-9]{64}$/),
       })
       .strict(),
   )
-  .max(30000);
+  .max(MAX_BACKUP_FILES);
+const manifestSchema = z
+  .object({
+    format: z.literal('hausakte_backup'),
+    version: z.literal(1),
+    createdAt: z.string().datetime({ offset: true }),
+    data: z.unknown(),
+    files: descriptorsSchema,
+  })
+  .strict();
+type Descriptor = z.infer<typeof descriptorsSchema>[number];
+async function validateContents(
+  data: Snapshot,
+  files: Map<string, Uint8Array>,
+  descriptors: Descriptor[],
+): Promise<void> {
+  if (descriptors.length > MAX_BACKUP_FILES)
+    throw new ContentLimitError(
+      'Das Backup überschreitet die Grenze von 30000 Dateien.',
+    );
+  const items = [
+    ...data.entries.flatMap((e) => e.attachments),
+    ...data.reports,
+  ];
+  const labels = new Map(
+    items.map((item) => [
+      item.file,
+      `${'full' in item ? 'Protokoll' : 'Anhang'} „${item.name}“`,
+    ]),
+  );
+  if (
+    files.size !== snapshotFiles(data).length ||
+    files.size !== descriptors.length
+  )
+    throw new Error('Unvollständiges Inhaltsverzeichnis.');
+  const verified = new Map<
+    string,
+    { sha256: string; size: number; pages?: number }
+  >();
+  for (const descriptor of descriptors) {
+    try {
+      if (descriptor.size > MAX_FILE_BYTES)
+        throw new ContentLimitError(
+          'Die Datei überschreitet die Grenze von 50 MB.',
+        );
+      descriptorsSchema.element.parse(descriptor);
+      const bytes = files.get(descriptor.file);
+      if (
+        !bytes ||
+        verified.has(descriptor.file) ||
+        bytes.length !== descriptor.size ||
+        digest(bytes) !== descriptor.sha256
+      )
+        throw new Error('Die Datei fehlt oder ihre Prüfsumme ist ungültig.');
+      let pages: number | undefined;
+      if (descriptor.file.endsWith('.pdf'))
+        pages = (await inspectPdf(bytes)).getPageCount();
+      else {
+        const probe = await PDFDocument.create();
+        await probe.embedJpg(bytes);
+      }
+      verified.set(descriptor.file, {
+        size: bytes.length,
+        sha256: descriptor.sha256,
+        pages,
+      });
+    } catch (error) {
+      const message = `${labels.get(descriptor.file) ?? 'Backup-Datei'}: ${error instanceof Error ? error.message : 'Datei nicht lesbar.'}`;
+      if (error instanceof ContentLimitError)
+        throw new ContentLimitError(message);
+      throw new Error(message);
+    }
+  }
+  for (const item of items) {
+    const file = verified.get(item.file);
+    if (
+      !file ||
+      file.sha256 !== item.sha256 ||
+      ('size' in item && file.size !== item.size)
+    )
+      throw new Error(
+        `${labels.get(item.file)}: Eine Anhangsreferenz ist beschädigt.`,
+      );
+    if ('kind' in item && item.kind === 'pdf' && item.pages !== file.pages)
+      throw new Error(`${labels.get(item.file)}: Ungültige Seitenzahl.`);
+  }
+}
 type DecodedBackup = {
   data: Snapshot;
   files: Map<string, Uint8Array>;
@@ -77,28 +177,30 @@ export class BackupCodec {
       throw new Error(
         'Bitte ein Passwort mit mindestens 10 Zeichen verwenden.',
       );
+    if (files.size > MAX_BACKUP_FILES)
+      throw new ContentLimitError(
+        'Das Backup überschreitet die Grenze von 30000 Dateien.',
+      );
+    const validated = validateSnapshot(data);
     const descriptors = [...files].map(([file, bytes]) => ({
       file,
       size: bytes.length,
       sha256: digest(bytes),
     }));
-    const manifest = encoder.encode(
-      JSON.stringify({
-        format: 'hausakte_backup',
-        version: 1,
-        createdAt: this.env.now(),
-        data: validateSnapshot(data),
-        files: descriptors,
-      }),
+    const metadata = {
+      format: 'hausakte_backup',
+      version: 1,
+      createdAt: this.env.now(),
+      data: validated,
+      files: descriptors,
+    };
+    const manifest = encoder.encode(JSON.stringify(metadata));
+    checkBackupSize(
+      manifest.length,
+      [...files.values()].reduce((sum, b) => sum + b.length, 0),
     );
-    const size =
-      4 +
-      manifest.length +
-      [...files.values()].reduce((sum, b) => sum + b.length, 0);
-    if (size > MAX_BACKUP_BYTES - 64)
-      throw new Error(
-        'Das Backup überschreitet die derzeitige Grenze von 128 MB.',
-      );
+    await validateContents(validated, files, descriptors);
+    manifestSchema.parse(metadata);
     const payload = concatBytes(
       u32(manifest.length),
       manifest,
@@ -116,11 +218,11 @@ export class BackupCodec {
     }
   }
   async decode(bytes: Uint8Array, password: string): Promise<DecodedBackup> {
-    if (
-      bytes.length < 60 ||
-      bytes.length > MAX_BACKUP_BYTES ||
-      !MAGIC.every((b, i) => bytes[i] === b)
-    )
+    if (bytes.length > MAX_BACKUP_BYTES)
+      throw new ContentLimitError(
+        'Das Backup überschreitet die Grenze von 128 MB.',
+      );
+    if (bytes.length < 60 || !MAGIC.every((b, i) => bytes[i] === b))
       throw new Error('Keine unterstützte Hausakte-Sicherung (.habackup).');
     const iterations = integer(bytes, 8);
     if (iterations !== ITERATIONS)
@@ -147,18 +249,23 @@ export class BackupCodec {
     }
     try {
       const length = integer(payload, 0);
-      if (length > 16 * 1024 * 1024 || length > payload.length - 4)
+      if (length > payload.length - 4)
         throw new Error('Ungültiges Inhaltsverzeichnis.');
-      const manifest = z
-        .object({
-          format: z.literal('hausakte_backup'),
-          version: z.literal(1),
-          createdAt: z.string().datetime({ offset: true }),
-          data: z.unknown(),
-          files: descriptorsSchema,
-        })
-        .strict()
-        .parse(JSON.parse(decoder.decode(payload.slice(4, 4 + length))));
+      checkBackupSize(length, payload.length - 4 - length);
+      const raw: unknown = JSON.parse(
+        decoder.decode(payload.subarray(4, 4 + length)),
+      );
+      if (
+        raw &&
+        typeof raw === 'object' &&
+        'files' in raw &&
+        Array.isArray(raw.files) &&
+        raw.files.length > MAX_BACKUP_FILES
+      )
+        throw new ContentLimitError(
+          'Das Backup überschreitet die Grenze von 30000 Dateien.',
+        );
+      const manifest = manifestSchema.parse(raw);
       const data = validateSnapshot(manifest.data);
       const files = new Map<string, Uint8Array>();
       let offset = 4 + length;
@@ -170,13 +277,6 @@ export class BackupCodec {
           throw new Error('Doppelte oder fehlende Datei.');
         const file = payload.slice(offset, offset + descriptor.size);
         offset += descriptor.size;
-        if (digest(file) !== descriptor.sha256)
-          throw new Error('Ungültige Prüfsumme.');
-        if (descriptor.file.endsWith('.pdf')) await inspectPdf(file);
-        else {
-          const probe = await PDFDocument.create();
-          await probe.embedJpg(file);
-        }
         files.set(descriptor.file, file);
       }
       if (
@@ -184,26 +284,10 @@ export class BackupCodec {
         files.size !== snapshotFiles(data).length
       )
         throw new Error('Unvollständiges Inhaltsverzeichnis.');
-      for (const item of [
-        ...data.entries.flatMap((e) => e.attachments),
-        ...data.reports,
-      ]) {
-        const file = files.get(item.file);
-        if (
-          !file ||
-          digest(file) !== item.sha256 ||
-          ('size' in item && item.size !== file.length)
-        )
-          throw new Error('Eine Anhangsreferenz ist beschädigt.');
-        if (
-          'kind' in item &&
-          item.kind === 'pdf' &&
-          (await inspectPdf(file)).getPageCount() !== item.pages
-        )
-          throw new Error('Ungültige Seitenzahl.');
-      }
+      await validateContents(data, files, manifest.files);
       return { data, files, createdAt: manifest.createdAt };
-    } catch {
+    } catch (error) {
+      if (error instanceof ContentLimitError) throw error;
       throw new Error(
         'Das Backup enthält beschädigte oder unvollständige Daten. Es wurde nichts übernommen.',
       );
@@ -228,10 +312,7 @@ export class BackupService {
       ]) {
         const bytes = await verifiedFile(this.house.vault, item);
         if (!files.has(item.file)) size += bytes.length;
-        if (size > MAX_BACKUP_BYTES - 64)
-          throw new Error(
-            'Das Backup überschreitet die derzeitige Grenze von 128 MB.',
-          );
+        checkBackupSize(0, size);
         files.set(item.file, bytes);
       }
       return this.codec.encode(data, files, password);

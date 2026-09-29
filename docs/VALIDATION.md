@@ -6,6 +6,88 @@ in den jeweiligen Abschnitten gesondert beschrieben.
 Dieses Protokoll unterscheidet automatisierte Tests, tatsächliche Android-Prüfungen
 und noch offene Gerätetests. Ein erfolgreicher Build ersetzt keine Scannerprüfung.
 
+## Release-Korrekturen vom 29.09.2026
+
+Die vom Nutzer gewählten bestehenden Grenzen bleiben erhalten. Store-Signierung,
+Veröffentlichung und Versionsanhebung sind nicht Teil dieser Aufgabe.
+
+Automatisch bestanden:
+
+- `npm run check`: Formatierung, ESLint, TypeScript strict und 59 Tests in acht Dateien.
+  Darunter der zusammenhängende SQLite-/Datei-/PDF-/Backup-Ablauf.
+- Backup-Textgrößen knapp unter, exakt an und über 16 MiB. Erfolgreiche Exporte
+  lassen sich einlesen. Zu große Exporte scheitern vor der Schlüsselableitung.
+  Ein unabhängiger OpenSSL-Writer erzeugt ältere übergroße Testbackups. Falsche
+  Passwörter bleiben Authentifizierungsfehler. Die 128-MiB-Grenze zählt den
+  Containeraufwand mit. Mehr als 30000 Dateien werden beim Export und Import abgewiesen.
+- PDFs mit 1997, 1998 und 2000 Originalseiten. Das erste vollständige Protokoll
+  umfasst genau 2000 Seiten und besteht auch den Backup-Roundtrip. Die anderen
+  überschreiten mit den erzeugten Seiten das Limit und hinterlassen weder
+  Teil-Datei noch Datenbankeintrag. Auch reine Layoutseiten zählen zum Limit.
+  Ein altes 2003-Seiten-Protokoll bleibt erhalten und wird im Backupfehler benannt.
+- Die echte `react-native-image-viewing`-Komponente mit simulierten nativen
+  Render- und Gestenkomponenten: Wischen, Zurück-Pfeil zum ursprünglichen Index,
+  Vorwärtspfeile, beide Randpositionen und erneutes Öffnen. Beide Zähler und
+  Pfeilzustände bleiben synchron. Wischen allein startet den Viewer nicht neu.
+- `npm run check:native`: 40 JVM-Tests einschließlich Einstellungen unter API 24,
+  25 und 35. Eigene native Lint-Prüfung ohne Fehler. 26 Warnungen verbleiben,
+  darunter Stil-/Versionshinweise und Permission-Hinweise des Bibliotheksmoduls.
+  Die bisherigen 34 `NewApi`-Fehler sind beseitigt.
+- Expo Doctor 20/20, Dependency-Audit ohne gemeldete Schwachstellen,
+  Android-Hermes-Export, `npm run build:preview` und APK-Ausrichtung für 16-KiB-Seiten.
+  Der tatsächlich erzeugte DEX verwendet für die Erinnerungsberechnung `j$.time`.
+
+Der uneingeschränkte native Lint-Aufruf wurde erneut ausgeführt. Er scheitert
+weiterhin in `react-native-worklets:lintAnalyzeDebug` mit „Cannot find a KaModule“.
+Der dokumentierte Helfer nimmt ausschließlich die beiden betroffenen
+Abhängigkeits-Analysetasks von Worklets und Expo Modules Core aus. Analyse und
+Fehlerabbruch des eigenen Moduls bleiben aktiviert. Ein vollständiger fehlerfreier
+Lint-Lauf aller SDK-Abhängigkeiten wird deshalb nicht behauptet.
+
+Tatsächlich auf Android 7/API 24, x86_64, im eigenen AVD `hausakte_audit_api24`:
+
+- Die eigenständige `devRelease` startet ohne Metro. Eine synthetische Akte
+  lässt sich anlegen. Monatliche Erinnerung am Ersten um 09:00 Uhr wird berechnet
+  und vom AlarmManager angenommen. Nach echtem Emulator-Neustart ist derselbe
+  Termin wieder eingeplant. Die Testbenachrichtigung wurde tatsächlich zugestellt.
+- Bei im Emulator gesperrten Benachrichtigungen erscheint der Hinweis. Der Button
+  öffnet erfolgreich Androids `InstalledAppDetails`. Danach wurde die Freigabe
+  wiederhergestellt.
+- Drei synthetische JPEGs gemeinsam über die Systemauswahl importiert. In der
+  Galerie von Foto 1 zu Foto 2 gewischt und per Pfeil zurück. Sichtbares rotes
+  Testbild und beide Zähler zeigen Foto 1. Weitere Kombination aus Vorwärtspfeil,
+  Zurückwischen und Vorwärtspfeil erfolgreich. Eintrag mit den Fotos gespeichert.
+- Vollständiges Einzelprotokoll erzeugt, nativ angezeigt und Android-Druckdialog
+  mit sichtbarer Seite geöffnet. Kein physischer Druckauftrag.
+
+- Verschlüsseltes Backup mit Testakte, Eintrag, drei Fotos und Protokoll über
+  Androids Speicherortauswahl gespeichert. Auf API 24 dauert die JavaScript-
+  Schlüsselableitung im Emulator ungefähr zwei Minuten. Die anschließende
+  Wiederherstellung wurde auf Nutzerwunsch nicht weiter geprüft. Automatisierte
+  Roundtrips sind separat bestanden.
+
+Auf dem HONOR wurde die Kamera geöffnet und eine Aufnahme ausgelöst. Anschließend
+war ein Foto in der Hausakte-Großansicht sichtbar. Die weitere Geräteabnahme wurde
+auf ausdrücklichen Nutzerwunsch beendet. Kein vollständiger neuer Scannerlauf,
+kein vollständiger Backup-Roundtrip auf dem HONOR und keine weitere Geräte-Testserie.
+
+Offene manuelle Abnahme: Kameraaufnahme als Eintrag speichern und erneut öffnen,
+ein bis zwei Seiten scannen und als PDF ansehen, mehrere Fotos importieren und
+Wischen mit beiden Pfeilen kombinieren, ein vollständiges Protokoll erstellen
+sowie ein Backup speichern und wiederherstellen. Dabei die Testakte verwenden.
+Bestehende Nutzerdaten wurden nicht gelöscht. Die Testakte auf dem HONOR heißt
+„Release-Test 29.09.2026“.
+
+Die Dev-APK wurde nach Prüfung von Kennung, installierter Version, Debug-Flag,
+Installer und Zertifikat auf dem HONOR BVL-N49 mit Android 16 datenbewahrend
+aktualisiert und gestartet. Die vorhandene Dev-Signatur stimmt überein.
+Paket bleibt `com.appfactory.house_log.dev`, Version 1.0.0 (1). Der Installationshelfer
+verwendet für die Installer-Auskunft jetzt den bereits unter API 24 verfügbaren
+Aufruf ohne `--show-versioncode`. Die Versionsprüfung erfolgt weiterhin über
+`dumpsys package`.
+
+APK: `build/releases/dev/Hausakte-Dev-1.0.0-1-release-fixes-20260929-0743.apk`.
+
 ## PDF-Abgleich vom 27.09.2026
 
 Die aktuelle Fahrzeug-Verlaufs-PDF und ein gespeichertes Einzelprotokoll wurden

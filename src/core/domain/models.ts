@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { MAX_FILE_BYTES, MAX_PDF_PAGES } from '../files/limits';
 
 const id = z.string().uuid();
 const short = z.string().max(500);
@@ -12,12 +13,8 @@ export const attachmentSchema = z
     name: short.min(1),
     file: fileKey,
     sha256: z.string().regex(/^[a-f0-9]{64}$/),
-    size: z
-      .number()
-      .int()
-      .positive()
-      .max(50 * 1024 * 1024),
-    pages: z.number().int().positive().max(2000).optional(),
+    size: z.number().int().positive().max(MAX_FILE_BYTES),
+    pages: z.number().int().positive().max(MAX_PDF_PAGES).optional(),
   })
   .strict();
 export const reminderSchema = z

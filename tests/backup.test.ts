@@ -4,6 +4,7 @@ import { writeFile } from 'node:fs/promises';
 import { snapshotFiles } from '../src/core/domain/models';
 import { digest } from '../src/core/files/integrity';
 import { fixture, record, sourcePdf, photo, env } from './support';
+import { backupManifest, legacyBackup } from './backup-fixtures';
 
 const fixtures: Awaited<ReturnType<typeof fixture>>[] = [];
 async function setup() {
@@ -135,7 +136,10 @@ describe('Real AES-GCM, PDFs, files and SQLite backup workflow', () => {
   it('rejects authenticated payloads with missing attachments before takeover', async () => {
     const { f } = await prepared();
     const data = await f.repo.snapshot();
-    const malformed = await f.backup.codec.encode(data, new Map(), password);
+    await expect(
+      f.backup.codec.encode(data, new Map(), password),
+    ).rejects.toThrow(/unvollständig/i);
+    const malformed = legacyBackup(backupManifest(data), password);
     await expect(f.backup.codec.decode(malformed, password)).rejects.toThrow(
       /unvollständig/,
     );

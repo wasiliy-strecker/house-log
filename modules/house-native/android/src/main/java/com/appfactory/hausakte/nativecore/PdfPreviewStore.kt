@@ -30,7 +30,8 @@ class PdfPreviewStore(private val context: Context) {
     fun open(uri: String): Map<String, Any> {
         val file = privateDocument(context, uri)
         val pages = withRenderer(file) { renderer ->
-            require(renderer.pageCount in 1..2000) { "Keine unterstützte PDF." }
+            require(renderer.pageCount > 0) { "Die PDF enthält keine Seiten." }
+            require(renderer.pageCount <= 2000) { "Die PDF überschreitet die Grenze von 2000 Seiten." }
             (0 until renderer.pageCount).map { index ->
                 renderer.openPage(index).use { page -> mapOf("width" to page.width, "height" to page.height) }
             }

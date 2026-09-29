@@ -51,7 +51,10 @@ export function PhotoGallery({
   const c = useTheme(),
     feedback = useFeedback(),
     safe = useSafeAreaInsets();
-  const [gallery, setGallery] = useState<number | null>(null),
+  const [gallery, setGallery] = useState<{
+      index: number;
+      request: number;
+    } | null>(null),
     [page, setPage] = useState(0);
   async function menu(a: Attachment, index: number, anchor?: MenuAnchor) {
     const selected = await feedback.choose({
@@ -104,7 +107,12 @@ export function PhotoGallery({
   }
   function show(index: number) {
     setPage(index);
-    setGallery(index);
+    // Swipes update the visible page inside ImageViewing. An explicit jump
+    // must also work when its target equals the viewer's original start index.
+    setGallery((previous) => ({
+      index,
+      request: (previous?.request ?? 0) + 1,
+    }));
   }
   return (
     <>
@@ -163,8 +171,9 @@ export function PhotoGallery({
         />
       )}
       <ImageViewing
+        key={gallery?.request ?? 0}
         images={photos.map((a) => ({ uri: house.vault.uri(a.file) }))}
-        imageIndex={gallery ?? 0}
+        imageIndex={gallery?.index ?? 0}
         visible={gallery !== null}
         backgroundColor={c.background}
         swipeToCloseEnabled={false}

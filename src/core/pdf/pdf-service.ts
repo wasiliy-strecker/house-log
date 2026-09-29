@@ -14,11 +14,17 @@ import {
 } from './report-layout';
 import type { FileVault } from '../ports';
 import { verifiedFile } from '../files/integrity';
+import {
+  ContentLimitError,
+  MAX_FILE_BYTES,
+  checkPdfPages,
+} from '../files/limits';
 
-export const MAX_FILE_BYTES = 50 * 1024 * 1024;
+export { MAX_FILE_BYTES } from '../files/limits';
 export async function inspectPdf(bytes: Uint8Array): Promise<PDFDocument> {
-  if (bytes.length < 20 || bytes.length > MAX_FILE_BYTES)
-    throw new Error('Die PDF ist leer oder größer als 50 MB.');
+  if (bytes.length > MAX_FILE_BYTES)
+    throw new ContentLimitError('Die PDF überschreitet die Grenze von 50 MB.');
+  if (bytes.length < 20) throw new Error('Die PDF ist leer oder beschädigt.');
   const head = String.fromCharCode(...bytes.slice(0, 8));
   const tail = String.fromCharCode(...bytes.slice(-2048));
   if (!head.startsWith('%PDF-') || !tail.includes('%%EOF'))
@@ -31,8 +37,8 @@ export async function inspectPdf(bytes: Uint8Array): Promise<PDFDocument> {
     });
     if (pdf.isEncrypted)
       throw new Error('Passwortgeschützte PDFs werden nicht unterstützt.');
-    if (!pdf.getPageCount() || pdf.getPageCount() > 2000)
-      throw new Error('Die PDF hat keine Seiten oder mehr als 2000 Seiten.');
+    checkPdfPages(pdf.getPageCount());
+    if (!pdf.getPageCount()) throw new Error('Die PDF hat keine Seiten.');
     for (const page of pdf.getPages()) {
       if (
         !Number.isFinite(page.getWidth()) ||
@@ -44,6 +50,7 @@ export async function inspectPdf(bytes: Uint8Array): Promise<PDFDocument> {
     }
     return pdf;
   } catch (error) {
+    if (error instanceof ContentLimitError) throw error;
     if (
       String(error).toLowerCase().includes('encrypt') ||
       String(error).includes('Passwort')
@@ -344,6 +351,7 @@ export class PdfService {
             `${original.getPageCount()} Dokumentseiten folgen. Die Originaldatei bleibt separat in der Hausakte gespeichert.`,
           );
           // Copy original PDF pages, preserving searchable text, rotation and size.
+          checkPdfPages(pdf.getPageCount() + original.getPageCount(), true);
           const copied = await pdf.copyPages(
             original,
             original.getPageIndices(),
@@ -353,6 +361,7 @@ export class PdfService {
       }
     }
     layout?.finish();
+    checkPdfPages(pdf.getPageCount(), true);
     const result = await pdf.save();
     if (result.length > MAX_FILE_BYTES)
       throw new Error(

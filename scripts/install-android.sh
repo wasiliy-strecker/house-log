@@ -40,7 +40,7 @@ echo "Geprüfte Installationsart: $mode"
 "$adb" -s "$device" get-state
 installed="$("$adb" -s "$device" shell pm path "$package" | tr -d '\r' | sed -n 's/^package://p' | head -n 1 || true)"
 if [ -n "$installed" ]; then
-  "$adb" -s "$device" shell pm list packages -i --show-versioncode "$package"
+  "$adb" -s "$device" shell pm list packages -i "$package"
   "$adb" -s "$device" shell dumpsys package "$package" | rg 'versionCode=|versionName=|flags=|installerPackageName=' || true
   temp="$(mktemp -d -t hausakte-cert-XXXXXXXX)"
   trap 'rm -rf "$temp"' EXIT
@@ -56,7 +56,7 @@ else
   echo 'Keine vorhandene Hausakte-Dev-Installation. Version, Debug-Flag und Installer entfallen für den bisherigen Stand.'
 fi
 "$adb" -s "$device" install -r -t -g --no-streaming "$apk"
-"$adb" -s "$device" shell pm list packages -i --show-versioncode "$package"
+"$adb" -s "$device" shell pm list packages -i "$package"
 "$adb" -s "$device" shell dumpsys package "$package" | rg 'versionCode=|versionName=|flags=|installerPackageName=' || true
 if [ "$mode" = 'debug' ]; then
   "$adb" -s "$device" reverse tcp:8083 tcp:8083
